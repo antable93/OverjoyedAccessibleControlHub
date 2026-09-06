@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="OverjoyedVersion3.ControllerEditor">
+
+    <Grid RowDefinitions="Auto, *">
+        <Label Grid.Row="0" Text="Controller Editor" FontSize="{DynamicResource TitleFontSize}" FontAttributes="Bold" Margin="0, 0, 0, 24" 
+               TextColor="{DynamicResource FontColor}"/>
+        <!-- Editor Panels -->
+        <Grid Grid.Row="1" RowDefinitions="2*, 1*" ColumnDefinitions="3.5*, 1*" RowSpacing="6" ColumnSpacing="6"
+              HeightRequest="1100">
+            <!-- Controller Panel -->
+            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource PanelBackground}">
+                    <ScrollView x:Name="ControllerCanvasScrollView" Grid.Row="1" Orientation="Both"
+                                SizeChanged="OnControllerCanvasSizeChanged">
+                        <Grid x:Name="ControllerContainer" HorizontalOptions="Fill" VerticalOptions="Fill"/>
+                    </ScrollView>
+            </Border>
+
+            <!-- Browser Panels -->
+            <Grid Grid.Row="1" Grid.Column="0" ColumnDefinitions="1*, 1*" ColumnSpacing="6">
+                <Border Grid.Column="0" Style="{StaticResource PanelBackground}">
+                    <Grid RowDefinitions="Auto, *, Auto">
+                        <Label Grid.Row="0" Text="Controllers" Style="{StaticResource PanelHeadingLabel}"/>
+
+                        <ScrollView Grid.Row="1">
+                            <FlexLayout x:Name="ControllerListStack"
+                                        Direction="Row" Wrap="Wrap"
+                                        AlignItems="Start" AlignContent="Start" JustifyContent="Start"/>
+                        </ScrollView>
+
+                        <Button Grid.Row="2" Text="+ New" Style="{StaticResource PanelButton}"
+                                Clicked="OnNewControllerFileClicked"/>
+                    </Grid>
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource PanelBackground}">
+                    <Grid RowDefinitions="Auto, *">
+                        <Label Grid.Row="0" Text="Widgets" Style="{StaticResource PanelHeadingLabel}"/>
+
+                        <ScrollView Grid.Row="1">
+                            <FlexLayout x:Name="WidgetDrawer"
+                                        Direction="Row" Wrap="Wrap"
+                                        AlignItems="Start" AlignContent="Start" JustifyContent="Start"/>
+                        </ScrollView>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Inspector Panel -->
+            <Border x:Name="RightColumn" Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Style="{StaticResource PanelBackground}">
+                <Grid RowDefinitions="Auto, *">
+                    <Label Grid.Row="0" Text="Inspector" Style="{StaticResource PanelHeadingLabel}"/>
+                    <ContentView Grid.Row="1" x:Name="InspectorPanel" IsVisible="False" Padding="6, 0"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Drag preview overlay — declared after the main area, before the inspector -->
+        <AbsoluteLayout x:Name="DragOverlay" Grid.RowSpan="2"
+                        InputTransparent="True" IsClippedToBounds="False"
+                        HorizontalOptions="Fill" VerticalOptions="Fill"/>
+    </Grid>
+</ContentView>

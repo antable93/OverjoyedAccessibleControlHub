@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:overjoyed="clr-namespace:OverjoyedVersion3"
+             x:Class="OverjoyedVersion3.AppearanceMenu">
+    <Grid RowDefinitions="Auto, *">
+        <Label Grid.Row="0" Text="Appearance" FontSize="{DynamicResource TitleFontSize}" FontAttributes="Bold" Margin="0, 0, 0, 24"
+           TextColor="{DynamicResource FontColor}"/>
+
+        <VerticalStackLayout Grid.Row="1" Spacing="6">
+            <Grid ColumnDefinitions="*, *, *" ColumnSpacing="6">
+                <Border Grid.Column="0" Style="{StaticResource PanelBackground}">
+                    <VerticalStackLayout>
+                        <Label Text="Primary Color" FontSize="{DynamicResource BodyFontSize}" Margin="0, 0, 0, 12"/>
+                        <overjoyed:ColorGrid x:Name="PrimaryColorGrid" HorizontalOptions="Start"/>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <Label Grid.Column="0" Text="Custom Color" VerticalOptions="Center" HorizontalOptions="Start"/>
+                            <Entry Grid.Column="1" x:Name="CustomPrimaryColorEntry" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" BackgroundColor="{DynamicResource FieldColor}"
+                                   Placeholder="#000000" PlaceholderColor="{DynamicResource PlaceholderColor}" HorizontalOptions="End"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource PanelBackground}">
+                    <VerticalStackLayout>
+                        <Label Text="Secondary Color" FontSize="{DynamicResource BodyFontSize}" Margin="0, 0, 0, 12"/>
+                        <overjoyed:ColorGrid x:Name="SecondaryColorGrid" HorizontalOptions="Start"/>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <Label Grid.Column="0" Text="Custom Color" VerticalOptions="Center" HorizontalOptions="Start"/>
+                            <Entry Grid.Column="1" x:Name="CustomSecondaryColorEntry" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" BackgroundColor="{DynamicResource FieldColor}"
+                                   Placeholder="#000000" PlaceholderColor="{DynamicResource PlaceholderColor}" HorizontalOptions="End"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+                <Border Grid.Column="2" Style="{StaticResource PanelBackground}">
+                    <VerticalStackLayout>
+                        <Label Text="Font Color" FontSize="{DynamicResource BodyFontSize}" Margin="0, 0, 0, 12"/>
+                        <overjoyed:ColorGrid x:Name="FontColorGrid" HorizontalOptions="Start"/>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <Label Grid.Column="0" Text="Custom Color" VerticalOptions="Center" HorizontalOptions="Start"/>
+                            <Entry Grid.Column="1" x:Name="CustomFontColor" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" BackgroundColor="{DynamicResource FieldColor}"
+                                   Placeholder="#000000" PlaceholderColor="{DynamicResource PlaceholderColor}" HorizontalOptions="End"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <Grid ColumnDefinitions="*, *" RowDefinitions="*, *"  ColumnSpacing="6" RowSpacing="6">
+                <Border Style="{StaticResource PanelBackground}" Grid.Column="0" Grid.Row="0">
+                    <Grid ColumnDefinitions="*, Auto, 100, Auto" ColumnSpacing="8">
+                        <Label Grid.Column="0" Text="Font Size" FontSize="{DynamicResource BodyFontSize}" VerticalOptions="Center" HorizontalOptions="Start"/>
+                        <Label Grid.Column="1" Text="A" FontSize="12" TextColor="{DynamicResource FontColor}" VerticalOptions="Center"/>
+                        <Slider Grid.Column="2" x:Name="FontScaleSlider" Minimum="1" Maximum="2.5" WidthRequest="100" Margin="0,-10,0,-10"
+                                VerticalOptions="Center" HorizontalOptions="End"/>
+                        <Label Grid.Column="3" Text="A" FontSize="22" TextColor="{DynamicResource FontColor}" VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+                <Border Style="{StaticResource PanelBackground}" Grid.Column="0" Grid.Row="1">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Label Grid.Column="0" Text="Font Family" FontSize="{DynamicResource BodyFontSize}" VerticalOptions="Center" HorizontalOptions="Start"/>
+                        <Picker Grid.Column="1" x:Name="FontFamilyPicker" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}" BackgroundColor="{DynamicResource FieldColor}" HorizontalOptions="End"/>
+                    </Grid>
+                </Border>
+                <Border Style="{StaticResource PanelBackground}" Grid.Column="1" Grid.Row="0" >
+                    <Grid ColumnDefinitions="*, 100">
+                        <Label Grid.Column="0" Text="Window Opacity" FontSize="{DynamicResource BodyFontSize}" VerticalOptions="Center" HorizontalOptions="Start"/>
+                        <Slider Grid.Column="1" x:Name="WindowOpacitySlider" Minimum="0" Maximum="1" WidthRequest="100" Margin="0,-10,0,-10" 
+                                VerticalOptions="Center" HorizontalOptions="End"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </VerticalStackLayout>
+    </Grid>
+</ContentView>

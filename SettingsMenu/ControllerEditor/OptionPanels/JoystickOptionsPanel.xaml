@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:overjoyed="clr-namespace:OverjoyedVersion3"
+             x:Class="OverjoyedVersion3.JoystickOptionsPanel">
+    <ScrollView>
+        <VerticalStackLayout Spacing="12">
+
+            <Label Text="Binding" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+            <ScrollView Orientation="Vertical" MaximumHeightRequest="144">
+                <FlexLayout x:Name="BindingListLayout" Wrap="Wrap" Direction="Row"/>
+            </ScrollView>
+
+            <BoxView HeightRequest="1" Color="#3A3A3A" Margin="0,4"/>
+
+            <Label Text="Transform" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+            <VerticalStackLayout Spacing="10">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Label Text="X" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                        <Entry x:Name="XEntry" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" BackgroundColor="{DynamicResource FieldColor}"
+                               Unfocused="OnXEntryUnfocused"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                        <Label Text="Y" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                        <Entry x:Name="YEntry" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" BackgroundColor="{DynamicResource FieldColor}"
+                               Unfocused="OnYEntryUnfocused"/>
+                    </VerticalStackLayout>
+                </Grid>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Label x:Name="RotationLabel" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                        <Slider x:Name="RotationSlider" Minimum="0" Maximum="360" Margin="0,-10,0,-10"
+                                ValueChanged="OnRotationSliderChanged" DragCompleted="OnRotationSliderCompleted"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                        <Label x:Name="ScaleLabel" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                        <Slider x:Name="ScaleSlider" Minimum="0.1" Maximum="3" Margin="0,-10,0,-10"
+                                ValueChanged="OnScaleSliderChanged" DragCompleted="OnScaleSliderCompleted"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </VerticalStackLayout>
+
+            <BoxView HeightRequest="1" Color="#3A3A3A" Margin="0,4"/>
+
+            <Label Text="Appearance" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+            <VerticalStackLayout Spacing="10">
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Label Text="Highlight Color" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                        <Entry x:Name="HighlightColorEntry" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" BackgroundColor="{DynamicResource FieldColor}"
+                               Placeholder="#87CEFA" PlaceholderColor="{DynamicResource PlaceholderColor}"
+                               Unfocused="OnHighlightColorEntryUnfocused"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                        <Label Text="Stroke Color" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                        <Entry x:Name="StrokeColorEntry" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" BackgroundColor="{DynamicResource FieldColor}"
+                               Placeholder="#FFFFFF" PlaceholderColor="{DynamicResource PlaceholderColor}"
+                               Unfocused="OnStrokeColorEntryUnfocused"/>
+                    </VerticalStackLayout>
+                </Grid>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2">
+                        <Label x:Name="RingRadiusLabel" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                        <Slider x:Name="RingRadiusSlider" Minimum="50" Maximum="500" Margin="0,-10,0,-10"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                        <Label x:Name="KnobRadiusLabel" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                        <Slider x:Name="KnobRadiusSlider" Minimum="25" Maximum="400" Margin="0,-10,0,-10"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </VerticalStackLayout>
+
+            <BoxView HeightRequest="1" Color="#3A3A3A" Margin="0,4"/>
+
+            <Label Text="Indicator" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+            <VerticalStackLayout Spacing="10">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="Indicator Color" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                    <Entry x:Name="IndicatorColorEntry" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" BackgroundColor="{DynamicResource FieldColor}"
+                           Placeholder="#FFFFFF" PlaceholderColor="{DynamicResource PlaceholderColor}"
+                           Unfocused="OnIndicatorColorEntryUnfocused"/>
+                </VerticalStackLayout>
+                <ScrollView Orientation="Vertical" MaximumHeightRequest="192">
+                    <FlexLayout x:Name="IconListLayout" Wrap="Wrap" Direction="Row"/>
+                </ScrollView>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                    <VerticalStackLayout Grid.Column="0" Spacing="0">
+                        <Label x:Name="IndicatorOffsetXLabel" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                        <Slider x:Name="IndicatorOffsetXSlider" Minimum="-100" Maximum="100" Margin="0,-10,0,-10"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="0">
+                        <Label x:Name="IndicatorOffsetYLabel" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                        <Slider x:Name="IndicatorOffsetYSlider" Minimum="-100" Maximum="100" Margin="0,-10,0,-10"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </VerticalStackLayout>
+
+            <BoxView HeightRequest="1" Color="#3A3A3A" Margin="0,4"/>
+
+            <Label Text="Behavior" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+            <VerticalStackLayout Spacing="10">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="Sensitivity" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                        <VerticalStackLayout Grid.Column="0" Spacing="0">
+                            <Label x:Name="XLabel" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                            <Slider x:Name="XSlider" Minimum="1" Maximum="200" Margin="0,-10,0,-10"/>
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="0">
+                            <Label x:Name="YLabel" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                            <Slider x:Name="YSlider" Minimum="1" Maximum="200" Margin="0,-10,0,-10"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                </VerticalStackLayout>
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="Grab Mode" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                    <Picker x:Name="GrabModePicker"
+                            FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" BackgroundColor="{DynamicResource FieldColor}"
+                            SelectedIndexChanged="OnGrabModeChanged"/>
+                </VerticalStackLayout>
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="Return" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
+                    <Picker x:Name="ReturnModePicker"
+                            FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" BackgroundColor="{DynamicResource FieldColor}"
+                            SelectedIndexChanged="OnReturnModeChanged"/>
+                </VerticalStackLayout>
+                <HorizontalStackLayout Spacing="2" Margin="0,-10,0,-10">
+                    <Label Text="Release on Leave" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}" VerticalOptions="Center"/>
+                    <CheckBox x:Name="ReleaseOnLeaveCheckBox" Color="White" CheckedChanged="OnReleaseOnLeaveChanged"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout Spacing="2" Margin="0,-10,0,-10">
+                    <Label Text="Trigger After Release" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}" VerticalOptions="Center"/>
+                    <CheckBox x:Name="TriggerAfterReleaseCheckBox" Color="White" CheckedChanged="OnTriggerAfterReleaseChanged"/>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+
+            <BoxView HeightRequest="1" Color="#3A3A3A" Margin="0,4"/>
+
+            <Label Text="Danger Zone" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+            <overjoyed:IconButton BackgroundColor="#C0392B" HeightRequest="38" Padding="12,0"
+                                  IconSource="trash" Text="Delete Widget"
+                                  Rounded="True" Clicked="OnDeleteClicked"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentView>

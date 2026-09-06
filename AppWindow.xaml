@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Window xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:OverjoyedVersion3"
+             x:Class="OverjoyedVersion3.AppWindow"
+             Title="AppWindow">
+
+    <Window.TitleBar>
+        <TitleBar BackgroundColor="Transparent" ForegroundColor="White" HeightRequest="36">
+            <TitleBar.LeadingContent>
+                <Label Text="Overjoyed" FontSize="12" Margin="12,0" VerticalOptions="Center"/>
+            </TitleBar.LeadingContent>
+            
+            <TitleBar.TrailingContent>
+                <HorizontalStackLayout Spacing="12" Margin="10,0" VerticalOptions="Center">
+                    <ImageButton x:Name ="SettingsButton" WidthRequest="{DynamicResource IconSize}" HeightRequest="{DynamicResource IconSize}" Clicked="OnSettingsClicked"/>
+                </HorizontalStackLayout>
+            </TitleBar.TrailingContent>
+        </TitleBar>
+    </Window.TitleBar>
+
+    <local:MainPage />
+</Window>
