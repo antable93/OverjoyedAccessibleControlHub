@@ -6,13 +6,16 @@
              Title="AppWindow">
 
     <Window.TitleBar>
-        <TitleBar BackgroundColor="Transparent" ForegroundColor="White" HeightRequest="36">
+    <!-- Transparent background replaced with black -->
+        <TitleBar BackgroundColor="Black" ForegroundColor="White" HeightRequest="36">
             <TitleBar.LeadingContent>
                 <Label Text="Overjoyed" FontSize="12" Margin="12,0" VerticalOptions="Center"/>
             </TitleBar.LeadingContent>
             
             <TitleBar.TrailingContent>
                 <HorizontalStackLayout Spacing="12" Margin="10,0" VerticalOptions="Center">
+                    <Button Text="BG" WidthRequest="36" HeightRequest="30" Padding="0" Clicked="OnBackgroundToggleClicked" SemanticProperties.Description="Toggle background" />
+                    <Button x:Name="AlwaysOnTopButton" Text="Pin" WidthRequest="36" HeightRequest="30" Padding="0" Clicked="OnAlwaysOnTopClicked" SemanticProperties.Description="Toggle always on top" />
                     <ImageButton x:Name ="SettingsButton" WidthRequest="{DynamicResource IconSize}" HeightRequest="{DynamicResource IconSize}" Clicked="OnSettingsClicked"/>
                 </HorizontalStackLayout>
             </TitleBar.TrailingContent>

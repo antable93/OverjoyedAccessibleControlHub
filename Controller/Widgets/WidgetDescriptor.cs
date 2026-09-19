@@ -23,7 +23,7 @@ public abstract class WidgetDescriptor
 public class DialWidgetDescriptor : WidgetDescriptor
 {
     public DialWidgetDescriptor() { WidgetType = WidgetType.Dial; }
-    public int QuadrantCount { get; set; } = 4;
+    public int QuadrantCount { get; set; } = 8;
     public float DeadZoneRadius { get; set; } = 70f;
     public float DialRadius { get; set; } = 200f;
 }

@@ -7,8 +7,10 @@ internal static class NativeMethods
 {
     internal const int GWL_EXSTYLE = -20;
     internal const int WS_EX_NOACTIVATE = 0x08000000;
+    internal const int WS_EX_APPWINDOW = 0x00040000;
 
     internal static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
+    internal static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
     internal const uint SWP_NOMOVE = 0x0002;
     internal const uint SWP_NOSIZE = 0x0001;
     internal const uint SWP_NOACTIVATE = 0x0010;
@@ -22,6 +24,12 @@ internal static class NativeMethods
             ? exStyle.ToInt64() | WS_EX_NOACTIVATE
             : exStyle.ToInt64() & ~WS_EX_NOACTIVATE;
         SetWindowLongPtr(Hwnd, GWL_EXSTYLE, (IntPtr)newStyle);
+    }
+
+    internal static void SetAlwaysOnTop(bool alwaysOnTop)
+    {
+        SetWindowPos(Hwnd, alwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
 
     [DllImport("user32.dll")]

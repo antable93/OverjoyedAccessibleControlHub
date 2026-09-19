@@ -36,12 +36,10 @@ namespace OverjoyedVersion3
                         var exStyle = NativeMethods.GetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE);
 
                         // Ensure the app does not take focus by default.
+                        // Force WS_EX_APPWINDOW so the taskbar icon always shows, even for this
+                        // unpackaged, no-activate, always-on-top window.
                         NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE,
-                            (IntPtr)(exStyle.ToInt64() | NativeMethods.WS_EX_NOACTIVATE));
-
-                        // Ensure the ape is always above other apps.
-                        NativeMethods.SetWindowPos(hwnd, NativeMethods.HWND_TOPMOST, 0, 0, 0, 0,
-                            NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOACTIVATE);
+                            (IntPtr)(exStyle.ToInt64() | NativeMethods.WS_EX_NOACTIVATE | NativeMethods.WS_EX_APPWINDOW));
 
                         WindowManager.Get(window);
                         window.SystemBackdrop = new TransparentTintBackdrop();

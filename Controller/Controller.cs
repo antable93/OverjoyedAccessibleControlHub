@@ -8,6 +8,8 @@ public class SlotData
     public string Label { get; set; } = string.Empty;
     public Dictionary<string, string> Options { get; set; } = new();
     public List<string> BoundInputIds { get; set; } = new();
+    public List<string> ClickBoundInputIds { get; set; } = new();
+    public List<string> HoverBoundInputIds { get; set; } = new();
 }
 
 /// <summary>
@@ -50,16 +52,16 @@ public class Controller
         return true;
     }
 
-    public void TriggerBindingDown(string widgetId, string slotId)
+    public void TriggerBindingDown(string widgetId, string slotId, string bindingMode = "Click")
     {
         if (SlotData.TryGetValue($"{widgetId}/{slotId}", out var slot))
-            foreach (var id in slot.BoundInputIds)
+            foreach (var id in GetBoundInputIds(slot, bindingMode))
                 VirtualInputManager.Instance.FindActionInput(id)?.Down?.Invoke();
     }
-    public void TriggerBindingUp(string widgetId, string slotId)
+    public void TriggerBindingUp(string widgetId, string slotId, string bindingMode = "Click")
     {
         if (SlotData.TryGetValue($"{widgetId}/{slotId}", out var slot))
-            foreach (var id in slot.BoundInputIds)
+            foreach (var id in GetBoundInputIds(slot, bindingMode))
                 VirtualInputManager.Instance.FindActionInput(id)?.Up?.Invoke();
     }
     public void TriggerBindingMove1D(string widgetId, string slotId, float axisValue)
@@ -78,13 +80,19 @@ public class Controller
     /// <summary>
     /// Toggles an input ID on the specified slot: adds if absent, removes if present.
     /// </summary>
-    public async Task Bind(string widgetId, string slotId, string inputId)
+    public async Task Bind(string widgetId, string slotId, string inputId, string bindingMode = "Click")
     {
         var slot = GetOrCreateSlotData(widgetId, slotId);
-        if (slot.BoundInputIds.Contains(inputId))
-            slot.BoundInputIds.Remove(inputId);
+        var bindings = bindingMode == "Hover" ? slot.HoverBoundInputIds : slot.ClickBoundInputIds;
+        if (bindings.Count == 0 && slot.BoundInputIds.Count > 0)
+        {
+            bindings.AddRange(slot.BoundInputIds);
+            slot.BoundInputIds.Clear();
+        }
+        if (bindings.Contains(inputId))
+            bindings.Remove(inputId);
         else
-            slot.BoundInputIds.Add(inputId);
+            bindings.Add(inputId);
         await ControllerManager.SaveControllerAsync(Name);
     }
     public void Unbind(string widgetId, string slotId) =>
@@ -99,6 +107,12 @@ public class Controller
             SlotData[key] = data = new SlotData();
         }
         return data;
+    }
+
+    private static List<string> GetBoundInputIds(SlotData slot, string bindingMode)
+    {
+        var bindings = bindingMode == "Hover" ? slot.HoverBoundInputIds : slot.ClickBoundInputIds;
+        return bindings.Count > 0 ? bindings : slot.BoundInputIds;
     }
 
     public static double GetLiveControllerWidth()

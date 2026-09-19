@@ -4,7 +4,7 @@ public enum DialInteractionMode { Click, Hover }
 
 public class Dial : Widget
 {
-    private readonly List<DialQuadrant> _quadrants;
+    private List<DialQuadrant> _quadrants;
     private string? _clickHeldSlotId;
 
     private DialWidgetDescriptor DialDescriptor => (DialWidgetDescriptor)Descriptor;
@@ -17,6 +17,13 @@ public class Dial : Widget
         VirtualInputManager.Instance.AddVirtualInputDevice(VirtualDeviceType.VigemXboxController);
 
         _ = LoadIconsAsync();
+    }
+
+    public void SetQuadrantCount(int count)
+    {
+        DialDescriptor.QuadrantCount = Math.Max(1, count);
+        _quadrants = CreateQuadrants(DialDescriptor.QuadrantCount);
+        OwningControllerView?.Invalidate();
     }
 
     public override void Draw(ICanvas canvas, RectF dirtyRect)
@@ -136,17 +143,17 @@ public class Dial : Widget
     public override bool OnPress(PointF localPoint)
     {
         var slotId = GetHitSlotID(localPoint);
-        if (slotId == null || GetInteractionMode(slotId) != DialInteractionMode.Click) return false;
+        if (slotId == null || !IsModeEnabled(slotId, DialInteractionMode.Click)) return false;
 
         _clickHeldSlotId = slotId;
-        Controller.TriggerBindingDown(WidgetId, slotId);
+        Controller.TriggerBindingDown(WidgetId, slotId, nameof(DialInteractionMode.Click));
         return true;
     }
     public override void OnRelease()
     {
         if (_clickHeldSlotId != null)
         {
-            Controller.TriggerBindingUp(WidgetId, _clickHeldSlotId);
+            Controller.TriggerBindingUp(WidgetId, _clickHeldSlotId, nameof(DialInteractionMode.Click));
             _clickHeldSlotId = null;
         }
     }
@@ -155,39 +162,43 @@ public class Dial : Widget
         var slotId = GetHitSlotID(localPoint);
         if (slotId == SelectedSlotId) return;
 
-        if (SelectedSlotId != null && GetInteractionMode(SelectedSlotId) == DialInteractionMode.Hover)
-            Controller.TriggerBindingUp(WidgetId, SelectedSlotId);
+        if (SelectedSlotId != null && IsModeEnabled(SelectedSlotId, DialInteractionMode.Hover))
+            Controller.TriggerBindingUp(WidgetId, SelectedSlotId, nameof(DialInteractionMode.Hover));
 
         SelectedSlotId = slotId;
 
-        if (slotId != null && GetInteractionMode(slotId) == DialInteractionMode.Hover)
-            Controller.TriggerBindingDown(WidgetId, slotId);
+        if (slotId != null && IsModeEnabled(slotId, DialInteractionMode.Hover))
+            Controller.TriggerBindingDown(WidgetId, slotId, nameof(DialInteractionMode.Hover));
     }
     public override void OnPointerExited()
     {
-        if (SelectedSlotId != null && GetInteractionMode(SelectedSlotId) == DialInteractionMode.Hover)
-            Controller.TriggerBindingUp(WidgetId, SelectedSlotId);
+        if (SelectedSlotId != null && IsModeEnabled(SelectedSlotId, DialInteractionMode.Hover))
+            Controller.TriggerBindingUp(WidgetId, SelectedSlotId, nameof(DialInteractionMode.Hover));
 
         SelectedSlotId = null;
     }
 
-    private DialInteractionMode GetInteractionMode(string slotId)
+    private bool IsModeEnabled(string slotId, DialInteractionMode mode)
     {
         var key = $"{WidgetId}/{slotId}";
-        if (Controller.SlotData.TryGetValue(key, out var slotData) &&
-            slotData.Options.TryGetValue("InteractionMode", out var raw) &&
-            Enum.TryParse<DialInteractionMode>(raw, out var mode))
-            return mode;
-        return DialInteractionMode.Click;
+        if (!Controller.SlotData.TryGetValue(key, out var slotData))
+            return mode == DialInteractionMode.Click;
+
+        var option = $"{mode}Enabled";
+        if (slotData.Options.TryGetValue(option, out var enabled) && bool.TryParse(enabled, out var result))
+            return result;
+
+        return slotData.Options.GetValueOrDefault("InteractionMode", "Click") == mode.ToString();
     }
     private static List<DialQuadrant> CreateQuadrants(int count)
     {
         var list = new List<DialQuadrant>();
         float sweep = 360f / Math.Max(1, count);
+        float rotationOffset = count == 8 ? 22.5f : 0f;
 
         for (int i = 0; i < count; i++)
         {
-            list.Add(new DialQuadrant(i * sweep, sweep));
+            list.Add(new DialQuadrant(rotationOffset + i * sweep, sweep));
         }
 
         return list;
@@ -229,7 +240,7 @@ public class Dial : Widget
             SlotData? slotData = null;
             Controller.SlotData.TryGetValue(bindingKey, out slotData);
 
-            if (slotData == null) { return; }
+            if (slotData == null) { continue; }
 
             bool isUsingIcon = slotData?.Options.GetValueOrDefault("IsUsingIcon", "true") != "false";
 

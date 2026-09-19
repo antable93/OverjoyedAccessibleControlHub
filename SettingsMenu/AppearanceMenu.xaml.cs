@@ -35,12 +35,21 @@ public partial class AppearanceMenu : ContentView
         FontScaleSlider.Value = SettingsManager.FontScale;
         FontScaleSlider.ValueChanged += OnFontScaleSliderValueChanged;
 
+        FontFamilyPicker.ItemsSource = new List<string> { SettingsManager.DefaultFontFamily };
+        FontFamilyPicker.SelectedIndexChanged += OnFontFamilyPickerSelectedIndexChanged;
+        _ = LoadFontFamiliesAsync();
+	}
+
+    // GDI+ font enumeration is slow, so run it off the UI thread to avoid stalling first open.
+    private async Task LoadFontFamiliesAsync()
+    {
+        var systemFonts = await Task.Run(FontManager.GetSystemFontFamilies);
+
         var fontFamilies = new List<string> { SettingsManager.DefaultFontFamily };
-        fontFamilies.AddRange(FontManager.GetSystemFontFamilies());
+        fontFamilies.AddRange(systemFonts);
         FontFamilyPicker.ItemsSource = fontFamilies;
         FontFamilyPicker.SelectedIndex = fontFamilies.IndexOf(SettingsManager.FontFamily);
-        FontFamilyPicker.SelectedIndexChanged += OnFontFamilyPickerSelectedIndexChanged;
-	}
+    }
 
     private void OnWindowOpacitySliderValueChanged(object? sender, ValueChangedEventArgs e)
     {

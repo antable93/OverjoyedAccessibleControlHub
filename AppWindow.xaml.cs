@@ -3,6 +3,8 @@ namespace OverjoyedVersion3;
 public partial class AppWindow : Window
 {
     private bool _settingsOpened = false;
+    private bool _transparentBackground;
+    private bool _alwaysOnTop;
     private ImageSource? _settingsIcon; 
     private ImageSource? _settingsIconFilled; 
 
@@ -39,4 +41,24 @@ public partial class AppWindow : Window
             _settingsOpened = false;
         }
     }
+
+    private void OnBackgroundToggleClicked(object sender, EventArgs e)
+    {
+        _transparentBackground = !_transparentBackground;
+        if (Page is not null)
+        {
+            Page.BackgroundColor = _transparentBackground ? Colors.Transparent : Colors.Black;
+        }
+    }
+
+#if WINDOWS
+    private void OnAlwaysOnTopClicked(object sender, EventArgs e)
+    {
+        _alwaysOnTop = !_alwaysOnTop;
+        NativeMethods.SetAlwaysOnTop(_alwaysOnTop);
+        AlwaysOnTopButton.BackgroundColor = _alwaysOnTop ? Colors.SlateBlue : null;
+    }
+#else
+    private void OnAlwaysOnTopClicked(object sender, EventArgs e) { }
+#endif
 }

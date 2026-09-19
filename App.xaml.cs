@@ -12,7 +12,23 @@ namespace OverjoyedVersion3
             var window = new AppWindow();
             window.Width = 800;
             window.Height = 1000;
-            window.Page?.BackgroundColor = Colors.Transparent;
+            // Transparent background replaced with black
+            window.Page?.BackgroundColor = Colors.Black;
+#if WINDOWS
+            window.Created += (_, _) =>
+            {
+                if (window.Handler?.PlatformView is Microsoft.UI.Xaml.Window nativeWindow)
+                {
+                    var presenter = nativeWindow.AppWindow.Presenter
+                        as Microsoft.UI.Windowing.OverlappedPresenter;
+                    if (presenter is not null)
+                    {
+                        presenter.Maximize();
+                        presenter.IsMaximizable = false;
+                    }
+                }
+            };
+#endif
             return window;
         }
     }
