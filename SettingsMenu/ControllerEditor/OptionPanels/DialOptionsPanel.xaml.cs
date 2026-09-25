@@ -4,6 +4,7 @@ public partial class DialOptionsPanel : ContentView
 {
     private static readonly Color ActiveColor = Color.FromArgb("#3A4A6A");
     private static Color InactiveColor => SettingsManager.FieldColor;
+    private static readonly Color DisabledColor = Color.FromArgb("#9B2C2C");
 
     private static readonly string[] AvailableIcons =
     [
@@ -26,6 +27,8 @@ public partial class DialOptionsPanel : ContentView
         "xbox_rb",              "xbox_ls",             "xbox_rs",              "xbox_dpad_up",      
         "xbox_dpad_down",       "xbox_dpad_left",      "xbox_dpad_right",      "xbox_button_start", 
         "xbox_button_back",     "xbox_guide",          "xbox_lt",              "xbox_rt",
+        "xbox_stick_l_up",      "xbox_stick_l_down",   "xbox_stick_l_left",    "xbox_stick_l_right",
+        "xbox_stick_r_up",      "xbox_stick_r_down",   "xbox_stick_r_left",    "xbox_stick_r_right",
     ];
 
     private readonly ControllerEditor _editor;
@@ -35,8 +38,25 @@ public partial class DialOptionsPanel : ContentView
     private readonly Dictionary<string, Button> _bindingButtons = new();
     private readonly Dictionary<string, Border> _iconListButtons = new();
     private static readonly int[] QuadrantCounts = Enumerable.Range(1, 16).ToArray();
-    private static readonly string[] BindingModes = ["Click", "Hover"];
-    private string _bindingMode = "Click";
+    private static readonly Dictionary<string, string> BindingModeLabels = new()
+    {
+        ["LeftClick"] = "Left Click",
+        ["RightClick"] = "Right Click",
+        ["MiddleClick"] = "Middle Click",
+        ["Hover"] = "Hover",
+    };
+    private static readonly Dictionary<string, string> OppositeDirectionalBindings = new()
+    {
+        ["Xbox LS Up"] = "Xbox LS Down",
+        ["Xbox LS Down"] = "Xbox LS Up",
+        ["Xbox LS Left"] = "Xbox LS Right",
+        ["Xbox LS Right"] = "Xbox LS Left",
+        ["Xbox RS Up"] = "Xbox RS Down",
+        ["Xbox RS Down"] = "Xbox RS Up",
+        ["Xbox RS Left"] = "Xbox RS Right",
+        ["Xbox RS Right"] = "Xbox RS Left",
+    };
+    private string _bindingMode = "Hover";
 
     private Controller Controller => _widget!.Controller!;
     private DialWidgetDescriptor Descriptor => (DialWidgetDescriptor)_widget!.Descriptor!;
@@ -48,16 +68,26 @@ public partial class DialOptionsPanel : ContentView
         SettingsManager.SecondaryColorChanged += (_, _) => RefreshInactiveColors();
         SettingsManager.FontColorChanged += (_, _) => RefreshTextColors();
         IconManager.IconsRecolored += (_, _) => RefreshIconColors();
+        _editor.InputDeviceTypeChanged += (_, _) =>
+        {
+            RebuildBindingList();
+            CreateIconList();
+        };
         CreateIconList();
         QuadrantCountPicker.ItemsSource = QuadrantCounts;
-        BindingModePicker.ItemsSource = BindingModes;
-        BindingModePicker.SelectedItem = _bindingMode;
+        BindingModePicker.ItemsSource = BindingModeLabels.Values.ToList();
+        BindingModePicker.SelectedItem = BindingModeLabels[_bindingMode];
     }
 
     private void RefreshInactiveColors()
     {
         foreach (var btn in _bindingButtons.Values)
         {
+            if (!btn.IsEnabled)
+            {
+                btn.BackgroundColor = DisabledColor;
+                continue;
+            }
             if (btn.BackgroundColor != ActiveColor) btn.BackgroundColor = InactiveColor;
         }
         foreach (var border in _iconListButtons.Values)
@@ -89,23 +119,27 @@ public partial class DialOptionsPanel : ContentView
     {
         _isUpdating = true;
         _widget = (Dial)widget;
-        _slotId = slotId;
+        _slotId = string.IsNullOrEmpty(slotId) ? "Quadrant_0" : slotId;
 
-        var key = $"{Descriptor.WidgetId}/{slotId}";
+        if (_widget.SelectedSlotId != _slotId)
+        {
+            _widget.SelectedSlotId = _slotId;
+            _editor.InvalidateCanvas();
+        }
+
+        var key = $"{Descriptor.WidgetId}/{_slotId}";
         Controller.SlotData.TryGetValue(key, out var slotData);
 
-        RefreshInteractionModes(
-            GetModeEnabled(slotData, "Click"),
-            GetModeEnabled(slotData, "Hover"));
-        BindingModePicker.SelectedItem = _bindingMode;
+        BindingModePicker.SelectedItem = BindingModeLabels[_bindingMode];
         RebuildBindingList();
 
         float indicatorSize = float.TryParse(slotData?.Options.GetValueOrDefault("IndicatorSize"), out var sz) && sz >= 4 ? sz : 16f;
         IndicatorSizeSlider.Value = indicatorSize;
 
-        IndicatorColorEntry.Text = slotData?.Options.GetValueOrDefault("IndicatorColor", "#FFFFFF") ?? "#FFFFFF";
+        IndicatorColorEntry.Text = slotData?.Options.GetValueOrDefault("IndicatorColor", "#000000") ?? "#000000";
 
         RefreshDisplayMode(slotData?.Options.GetValueOrDefault("IsUsingIcon", "true") != "false");
+        CreateIconList();
         RefreshIconListSelection();
         LabelEntry.Text = slotData?.Label ?? string.Empty;
         LabelEntry.WidthRequest = Math.Max(150, (slotData?.Label?.Length ?? 0) * 9.0 + 16);
@@ -119,6 +153,7 @@ public partial class DialOptionsPanel : ContentView
         XEntry.Text = Descriptor.X.ToString("0.##");
         YEntry.Text = Descriptor.Y.ToString("0.##");
         QuadrantCountPicker.SelectedItem = Descriptor.QuadrantCount;
+        RefreshQuadrantCycleLabel();
         RotationLabel.Text = $"Rotation  {(int)Descriptor.Rotation}";
         RotationSlider.Value = Descriptor.Rotation;
         ScaleLabel.Text = $"Scale  {Descriptor.Scale:0.0}";
@@ -130,27 +165,13 @@ public partial class DialOptionsPanel : ContentView
         _isUpdating = false;
     }
 
-    private void RebuildBindingList()
-    {
-        BindingListLayout.Children.Clear();
-        _bindingButtons.Clear();
-        var key = $"{Descriptor.WidgetId}/{_slotId}";
-        Controller.SlotData.TryGetValue(key, out var slotDataForList);
-        var selected = GetBindings(slotDataForList, _bindingMode).ToHashSet();
-
-        foreach (var label in VirtualInputManager.Instance.GetAllActionInputLabels())
-        {
-            var btn = CreateBindingButton(label);
-            if (selected.Contains(label))
-                btn.BackgroundColor = ActiveColor;
-            btn.Clicked += async (_, _) => await BindAction(label);
-            _bindingButtons[label] = btn;
-            BindingListLayout.Children.Add(btn);
-        }
-    }
     private void CreateIconList()
     {
-        foreach (var name in AvailableIcons)
+        IconListLayout.Children.Clear();
+        _iconListButtons.Clear();
+
+        bool keyboardMode = _editor.InputDeviceType == VirtualDeviceType.InputSimulatorKeyboard;
+        foreach (var name in AvailableIcons.Where(name => name.StartsWith("xbox_") != keyboardMode))
         {
             var image = new Image { Aspect = Aspect.AspectFit, Margin = new Thickness(6), Source = IconManager.GetIcon(name) };
             var border = new Border
@@ -201,27 +222,17 @@ public partial class DialOptionsPanel : ContentView
         foreach (var (name, btn) in _iconListButtons)
             btn.BackgroundColor = name == currentIcon ? ActiveColor : InactiveColor;
     }
-    private void RefreshInteractionModes(bool clickEnabled, bool hoverEnabled)
-    {
-        ClickEnabledCheckBox.IsChecked = clickEnabled;
-        HoverEnabledCheckBox.IsChecked = hoverEnabled;
-    }
-
-    private static bool GetModeEnabled(SlotData? slotData, string mode)
-    {
-        if (slotData?.Options.TryGetValue($"{mode}Enabled", out var enabled) == true &&
-            bool.TryParse(enabled, out var result))
-            return result;
-
-        return slotData?.Options.GetValueOrDefault("InteractionMode", "Click") == mode ||
-            (slotData == null && mode == "Click");
-    }
-
     private static List<string> GetBindings(SlotData? slotData, string mode)
     {
         if (slotData == null) return [];
-        var bindings = mode == "Hover" ? slotData.HoverBoundInputIds : slotData.ClickBoundInputIds;
-        return bindings.Count > 0 ? bindings : slotData.BoundInputIds;
+        var bindings = mode switch
+        {
+            "Hover" => slotData.HoverBoundInputIds,
+            "RightClick" => slotData.RightClickBoundInputIds,
+            "MiddleClick" => slotData.MiddleClickBoundInputIds,
+            _ => slotData.ClickBoundInputIds,
+        };
+        return bindings.Count > 0 || mode != "LeftClick" ? bindings : slotData.BoundInputIds;
     }
 
     // Button and input handlers
@@ -353,7 +364,7 @@ public partial class DialOptionsPanel : ContentView
         else
         {
             IndicatorColorEntry.Text = Controller.SlotData.TryGetValue($"{Descriptor.WidgetId}/{_slotId}", out var slotData)
-                ? slotData.Options.GetValueOrDefault("IndicatorColor", "#FFFFFF") : "#FFFFFF";
+                ? slotData.Options.GetValueOrDefault("IndicatorColor", "#000000") : "#000000";
         }
     }
     private async void OnHighlightColorEntryUnfocused(object sender, FocusEventArgs e)
@@ -395,25 +406,100 @@ public partial class DialOptionsPanel : ContentView
         hex = candidate.ToUpperInvariant();
         return true;
     }
-    private async void OnClickEnabledChanged(object sender, CheckedChangedEventArgs e)
+    private async void OnBindingModeChanged(object sender, EventArgs e)
     {
-        if (_widget == null || _isUpdating) return;
-        await SetModeEnabled("Click", e.Value);
-    }
-    private async void OnHoverEnabledChanged(object sender, CheckedChangedEventArgs e)
-    {
-        if (_widget == null || _isUpdating) return;
-        await SetModeEnabled("Hover", e.Value);
-    }
-    private void OnBindingModeChanged(object sender, EventArgs e)
-    {
-        if (_widget == null || _isUpdating || BindingModePicker.SelectedItem is not string mode) return;
-        _bindingMode = mode;
+        if (_widget == null || _isUpdating || BindingModePicker.SelectedIndex < 0) return;
+
+        var label = BindingModeLabels.Values.ElementAt(BindingModePicker.SelectedIndex);
+        var previousMode = _bindingMode;
+        _bindingMode = BindingModeLabels.First(kv => kv.Value == label).Key;
+
+        if (previousMode != _bindingMode)
+        {
+            var key = $"{Descriptor.WidgetId}/{_slotId}";
+            if (Controller.SlotData.TryGetValue(key, out var slot))
+            {
+                ClearBindingsForMode(slot, previousMode);
+                await OnIconSelectedAsync("question");
+                await ControllerManager.SaveControllerAsync(Controller.Name);
+            }
+        }
+
         RebuildBindingList();
+    }
+
+    private static void ClearBindingsForMode(SlotData slot, string mode)
+    {
+        switch (mode)
+        {
+            case "Hover":
+                slot.HoverBoundInputIds.Clear();
+                break;
+            case "RightClick":
+                slot.RightClickBoundInputIds.Clear();
+                break;
+            case "MiddleClick":
+                slot.MiddleClickBoundInputIds.Clear();
+                break;
+            default:
+                slot.ClickBoundInputIds.Clear();
+                slot.BoundInputIds.Clear();
+                break;
+        }
+    }
+
+    private void RebuildBindingList()
+    {
+        if (_widget == null) return;
+        BindingListLayout.Children.Clear();
+        _bindingButtons.Clear();
+        var key = $"{Descriptor.WidgetId}/{_slotId}";
+        Controller.SlotData.TryGetValue(key, out var slotDataForList);
+        var selected = GetBindings(slotDataForList, _bindingMode).ToHashSet();
+
+        foreach (var label in VirtualInputManager.Instance.GetActionInputLabels(_editor.InputDeviceType))
+        {
+            var btn = CreateBindingButton(label);
+            if (selected.Contains(label))
+                btn.BackgroundColor = ActiveColor;
+            btn.Clicked += async (_, _) => await BindAction(label);
+            _bindingButtons[label] = btn;
+            BindingListLayout.Children.Add(btn);
+        }
+
+        RefreshDirectionalBindingButtons(selected);
     }
     private void OnDeleteClicked(object? sender, EventArgs e)
     {
         if (_widget != null) _ = _editor.DeleteWidgetAsync(_widget.WidgetId);
+    }
+    private void OnTransformHeaderTapped(object? sender, EventArgs e) => ToggleSection(TransformContent, TransformChevron);
+    private void OnQuadrantsHeaderTapped(object? sender, EventArgs e) => ToggleSection(QuadrantCountPicker, QuadrantsChevron);
+    private void OnAppearanceHeaderTapped(object? sender, EventArgs e) => ToggleSection(AppearanceContent, AppearanceChevron);
+    private void OnIndicatorHeaderTapped(object? sender, EventArgs e) => ToggleSection(IndicatorContent, IndicatorChevron);
+    private void OnDangerZoneHeaderTapped(object? sender, EventArgs e) => ToggleSection(DeleteWidgetButton, DangerZoneChevron);
+    private static void ToggleSection(VisualElement content, Label chevron)
+    {
+        content.IsVisible = !content.IsVisible;
+        chevron.Text = content.IsVisible ? "\u25BE" : "\u25B8";
+    }
+
+    private void OnPreviousQuadrantClicked(object? sender, EventArgs e) => CycleQuadrant(-1);
+    private void OnNextQuadrantClicked(object? sender, EventArgs e) => CycleQuadrant(1);
+    private void CycleQuadrant(int delta)
+    {
+        if (_widget == null || Descriptor.QuadrantCount <= 0) return;
+
+        int count = Descriptor.QuadrantCount;
+        int current = _slotId.StartsWith("Quadrant_") && int.TryParse(_slotId["Quadrant_".Length..], out int idx) ? idx : 0;
+        int next = ((current + delta) % count + count) % count;
+        _editor.SelectSlot(Descriptor.WidgetId, $"Quadrant_{next}");
+    }
+    private void RefreshQuadrantCycleLabel()
+    {
+        int count = Descriptor.QuadrantCount;
+        int current = _slotId.StartsWith("Quadrant_") && int.TryParse(_slotId["Quadrant_".Length..], out int idx) ? idx : 0;
+        QuadrantCycleLabel.Text = $"Quadrant {current + 1} / {count}";
     }
 
     private async Task BindAction(string label)
@@ -426,10 +512,27 @@ public partial class DialOptionsPanel : ContentView
 
         if (_bindingButtons.TryGetValue(label, out var btn))
             btn.BackgroundColor = wasSelected ? InactiveColor : ActiveColor;
+
+        slot = Controller.GetOrCreateSlotData(Descriptor.WidgetId, _slotId);
+        var selected = GetBindings(slot, _bindingMode).ToHashSet();
+        RefreshDirectionalBindingButtons(selected);
+
+        if (!wasSelected && BindingIconMap.TryGetIcon(label, out var iconName) && _iconListButtons.ContainsKey(iconName))
+            await OnIconSelectedAsync(iconName);
+        else if (wasSelected && selected.Count == 0)
+            await OnIconSelectedAsync("question");
     }
-    private async Task SetModeEnabled(string mode, bool enabled)
+    private void RefreshDirectionalBindingButtons(IReadOnlySet<string> selected)
     {
-        Controller.GetOrCreateSlotData(Descriptor.WidgetId, _slotId).Options[$"{mode}Enabled"] = enabled.ToString();
-        await ControllerManager.SaveControllerAsync(Controller.Name);
+        foreach (var (label, btn) in _bindingButtons)
+        {
+            bool isEnabled = !OppositeDirectionalBindings.TryGetValue(label, out var opposite) ||
+                !selected.Contains(opposite);
+            btn.IsEnabled = isEnabled;
+            if (!isEnabled)
+                btn.BackgroundColor = DisabledColor;
+            else if (!selected.Contains(label))
+                btn.BackgroundColor = InactiveColor;
+        }
     }
 }

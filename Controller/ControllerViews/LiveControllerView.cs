@@ -13,8 +13,12 @@ public class LiveControllerView : ControllerView
     public LiveControllerView(Controller controller) : base(controller)
     {
         BackgroundColor = Colors.Transparent;
+#if WINDOWS
+        HandlerChanged += OnHandlerChanged;
+#else
         StartInteraction += OnStartInteraction;
         EndInteraction += OnEndInteraction;
+#endif
 
         var pointer = new PointerGestureRecognizer();
         pointer.PointerMoved += OnPointerMoved;
@@ -30,15 +34,37 @@ public class LiveControllerView : ControllerView
         Invalidate();
     }
 
-    private void OnStartInteraction(object? sender, TouchEventArgs e)
+#if WINDOWS
+    // GraphicsView's TouchEventArgs carries no mouse-button info, so the native pointer events
+    // are used directly here to distinguish left/right/middle click.
+    private void OnHandlerChanged(object? sender, EventArgs e)
     {
-        var pt = e.Touches[0];
+        if (Handler?.PlatformView is not Microsoft.UI.Xaml.UIElement native) return;
 
+        native.PointerPressed += (s, e) =>
+        {
+            var point = e.GetCurrentPoint(native);
+            var button = point.Properties.IsRightButtonPressed ? MouseButtonKind.Right
+                : point.Properties.IsMiddleButtonPressed ? MouseButtonKind.Middle
+                : MouseButtonKind.Left;
+            HandlePress(new Point(point.Position.X, point.Position.Y), button);
+        };
+        native.PointerReleased += (s, e) => HandleRelease();
+        native.PointerCanceled += (s, e) => HandleRelease();
+        native.PointerCaptureLost += (s, e) => HandleRelease();
+    }
+#else
+    private void OnStartInteraction(object? sender, TouchEventArgs e) => HandlePress(e.Touches[0], MouseButtonKind.Left);
+    private void OnEndInteraction(object? sender, TouchEventArgs e) => HandleRelease();
+#endif
+
+    private void HandlePress(Point pt, MouseButtonKind button)
+    {
         foreach (var widget in WidgetsTopmostFirst())
         {
             var local = ToLocal(pt, widget);
             if (!InBounds(local, widget.GetSize())) continue;
-            if (widget.OnPress(local))
+            if (widget.OnPress(local, button))
             {
                 _pressedWidgetId = widget.Descriptor.WidgetId;
                 break;
@@ -47,7 +73,7 @@ public class LiveControllerView : ControllerView
 
         Invalidate();
     }
-    private void OnEndInteraction(object? sender, TouchEventArgs e)
+    private void HandleRelease()
     {
         if (_pressedWidgetId != null && DisplayedController.Widgets.TryGetValue(_pressedWidgetId, out var widget))
             widget.OnRelease();

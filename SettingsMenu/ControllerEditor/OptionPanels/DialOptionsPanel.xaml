@@ -6,6 +6,17 @@
     <ScrollView>
         <VerticalStackLayout Spacing="12">
 
+            <Grid x:Name="QuadrantCycleLayout" ColumnDefinitions="Auto,*,Auto">
+                <overjoyed:IconButton Grid.Column="0" IconSource="keyboard_arrow_left" HeightRequest="32" WidthRequest="32"
+                                      BackgroundColor="{DynamicResource FieldColor}" Rounded="True" Clicked="OnPreviousQuadrantClicked"/>
+                <Label Grid.Column="1" x:Name="QuadrantCycleLabel" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}"
+                       HorizontalTextAlignment="Center" VerticalOptions="Center"/>
+                <overjoyed:IconButton Grid.Column="2" IconSource="keyboard_arrow_right" HeightRequest="32" WidthRequest="32"
+                                      BackgroundColor="{DynamicResource FieldColor}" Rounded="True" Clicked="OnNextQuadrantClicked"/>
+            </Grid>
+
+            <BoxView HeightRequest="1" Color="#3A3A3A" Margin="0,4"/>
+
             <Label Text="Binding" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
                 <Picker x:Name="BindingModePicker" Title="Binding mode"
                     FontSize="{DynamicResource SubtextFontSize}"
@@ -13,14 +24,18 @@
                     BackgroundColor="{DynamicResource FieldColor}"
                     SelectedIndexChanged="OnBindingModeChanged"/>
             
-            <ScrollView Orientation="Vertical" MaximumHeightRequest="144">
-                <FlexLayout x:Name="BindingListLayout" Wrap="Wrap" Direction="Row"/>
-            </ScrollView>
+            <FlexLayout x:Name="BindingListLayout" Wrap="Wrap" Direction="Row"/>
 
             <BoxView HeightRequest="1" Color="#3A3A3A" Margin="0,4"/>
 
-            <Label Text="Transform" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
-            <VerticalStackLayout Spacing="10">
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0" Text="Transform" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+                <Label Grid.Column="1" x:Name="TransformChevron" Text="&#9656;" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnTransformHeaderTapped"/>
+                </Grid.GestureRecognizers>
+            </Grid>
+            <VerticalStackLayout x:Name="TransformContent" IsVisible="False" Spacing="10" Margin="0,10,0,0">
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                     <VerticalStackLayout Grid.Column="0" Spacing="2">
                         <Label Text="X" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
@@ -49,17 +64,29 @@
 
             <BoxView HeightRequest="1" Color="#3A3A3A" Margin="0,4"/>
 
-                <Label Text="Quadrants" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
-                <Picker x:Name="QuadrantCountPicker" Title="Select quadrant count"
-                    FontSize="{DynamicResource SubtextFontSize}"
-                    TextColor="{DynamicResource FontColor}"
-                    BackgroundColor="{DynamicResource FieldColor}"
-                    SelectedIndexChanged="OnQuadrantCountChanged"/>
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0" Text="Quadrants" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+                <Label Grid.Column="1" x:Name="QuadrantsChevron" Text="&#9656;" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnQuadrantsHeaderTapped"/>
+                </Grid.GestureRecognizers>
+            </Grid>
+            <Picker x:Name="QuadrantCountPicker" Title="Select quadrant count" IsVisible="False" Margin="0,10,0,0"
+                FontSize="{DynamicResource SubtextFontSize}"
+                TextColor="{DynamicResource FontColor}"
+                BackgroundColor="{DynamicResource FieldColor}"
+                SelectedIndexChanged="OnQuadrantCountChanged"/>
 
-                <BoxView HeightRequest="1" Color="#3A3A3A" Margin="0,4"/>
+            <BoxView HeightRequest="1" Color="#3A3A3A" Margin="0,4"/>
 
-            <Label Text="Appearance" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0" Text="Appearance" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+                <Label Grid.Column="1" x:Name="AppearanceChevron" Text="&#9656;" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnAppearanceHeaderTapped"/>
+                </Grid.GestureRecognizers>
+            </Grid>
+            <Grid x:Name="AppearanceContent" IsVisible="False" ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,10,0,0">
                 <VerticalStackLayout Grid.Column="0" Spacing="2">
                     <Label Text="Highlight Color" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
                     <Entry x:Name="HighlightColorEntry" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" BackgroundColor="{DynamicResource FieldColor}"
@@ -76,27 +103,19 @@
 
             <BoxView HeightRequest="1" Color="#3A3A3A" Margin="0,4"/>
 
-            <Label Text="Interaction Mode" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
-            <HorizontalStackLayout Spacing="8">
-                <HorizontalStackLayout Spacing="2">
-                    <CheckBox x:Name="ClickEnabledCheckBox" Color="White" CheckedChanged="OnClickEnabledChanged"/>
-                    <Label Text="Click" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" VerticalOptions="Center"/>
-                </HorizontalStackLayout>
-                <HorizontalStackLayout Spacing="2">
-                    <CheckBox x:Name="HoverEnabledCheckBox" Color="White" CheckedChanged="OnHoverEnabledChanged"/>
-                    <Label Text="Hover" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" VerticalOptions="Center"/>
-                </HorizontalStackLayout>
-            </HorizontalStackLayout>
-
-            <BoxView HeightRequest="1" Color="#3A3A3A" Margin="0,4"/>
-
-            <Label Text="Indicator" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
-            <VerticalStackLayout Spacing="10">
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0" Text="Indicator" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+                <Label Grid.Column="1" x:Name="IndicatorChevron" Text="&#9656;" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnIndicatorHeaderTapped"/>
+                </Grid.GestureRecognizers>
+            </Grid>
+            <VerticalStackLayout x:Name="IndicatorContent" IsVisible="False" Spacing="10" Margin="0,10,0,0">
 
                 <VerticalStackLayout Spacing="2">
                     <Label Text="Indicator Color" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource MutedFontColor}"/>
                     <Entry x:Name="IndicatorColorEntry" FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}" BackgroundColor="{DynamicResource FieldColor}"
-                           Placeholder="#FFFFFF" PlaceholderColor="{DynamicResource PlaceholderColor}"
+                              Placeholder="#000000" PlaceholderColor="{DynamicResource PlaceholderColor}"
                            Unfocused="OnIndicatorColorEntryUnfocused"/>
                 </VerticalStackLayout>
 
@@ -146,8 +165,14 @@
 
             <BoxView HeightRequest="1" Color="#3A3A3A" Margin="0,4"/>
 
-            <Label Text="Danger Zone" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
-            <overjoyed:IconButton BackgroundColor="#C0392B" HeightRequest="38" Padding="12,0"
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Grid.Column="0" Text="Danger Zone" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+                <Label Grid.Column="1" x:Name="DangerZoneChevron" Text="&#9656;" FontSize="{DynamicResource BodyFontSize}" TextColor="{DynamicResource FontColor}"/>
+                <Grid.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnDangerZoneHeaderTapped"/>
+                </Grid.GestureRecognizers>
+            </Grid>
+            <overjoyed:IconButton x:Name="DeleteWidgetButton" IsVisible="False" BackgroundColor="#C0392B" HeightRequest="38" Padding="12,0" Margin="0,10,0,0"
                                   IconSource="trash" Text="Delete Widget"
                                   Rounded="True" Clicked="OnDeleteClicked"/>
 

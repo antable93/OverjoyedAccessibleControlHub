@@ -13,6 +13,10 @@ public partial class AppWindow : Window
 		InitializeComponent();
         _ = InitializeAsync();
         IconManager.IconsRecolored += (_, _) => ReloadIcons();
+        if (Page is MainPage mainPage)
+        {
+            mainPage.Appeared += (_, _) => OpenSettingsOnStartup();
+        }
 	}
     private async Task InitializeAsync()
     {
@@ -24,6 +28,15 @@ public partial class AppWindow : Window
         _settingsIcon = IconManager.GetIcon("gear")?.Source;
         _settingsIconFilled = IconManager.GetIcon("gear-filled")?.Source;
         SettingsButton.Source = _settingsOpened ? _settingsIconFilled : _settingsIcon;
+    }
+
+    // Opens the Controller Editor (the default settings submenu) once, the first time MainPage loads.
+    private void OpenSettingsOnStartup()
+    {
+        if (_settingsOpened) return;
+        _settingsOpened = true;
+        (Page as MainPage)?.OpenSettings();
+        ReloadIcons();
     }
 
     private void OnSettingsClicked(object sender, EventArgs e)

@@ -5,7 +5,13 @@ namespace OverjoyedVersion3;
 
 public partial class ControllerEditor : ContentView
 {
+    private static readonly Color ActiveModeColor = Color.FromArgb("#3A4A6A");
+    private static Color InactiveModeColor => SettingsManager.FieldColor;
+
     private Controller? _selectedController;
+
+    public VirtualDeviceType InputDeviceType { get; private set; } = VirtualDeviceType.InputSimulatorKeyboard;
+    public event EventHandler<VirtualDeviceType>? InputDeviceTypeChanged;
 
     private readonly DialOptionsPanel _dialOptionsPanel;
     private readonly JoystickOptionsPanel _joystickOptionsPanel;
@@ -15,6 +21,8 @@ public partial class ControllerEditor : ContentView
     private EditorControllerView? _controllerView;
     private Icon? _controllerIcon;
     private double _scale;
+    private double _lastAvailableWidth = -1;
+    private double _lastAvailableHeight = -1;
 
     private WidgetType _dragWidgetType;
     private View? _dragPreview;
@@ -34,13 +42,10 @@ public partial class ControllerEditor : ContentView
         IconManager.IconsRecolored += (_, _) => RefreshIcons();
         _controllerIcon = IconManager.GetIcon("gamepad");
 
-        foreach (var (name, controller) in ControllerManager.Controllers)
-        {
-            ControllerListStack.Children.Add(CreateControllerFile(controller.Name,
-                () => OnControllerFileClicked(controller)));
-        }
-
+        RefreshControllerList();
+        RefreshLayoutPicker();
         LoadWidgetDrawer();
+        RefreshModeButtons();
     }
 
     private void RefreshTextColors()
@@ -82,6 +87,7 @@ public partial class ControllerEditor : ContentView
         if (ControllerManager.ActiveController != null)
         {
             _selectedController = ControllerManager.ActiveController;
+            RefreshLayoutPicker();
             HighlightControllerFile();
             LoadController(_selectedController);
         }
@@ -92,6 +98,8 @@ public partial class ControllerEditor : ContentView
         NativeMethods.SetNoActivate(true);
 #endif
     }
+
+    private void OnStartOverjoyedClicked(object? sender, EventArgs e) => CloseRequested?.Invoke(this, EventArgs.Empty);
 
     private void OnPrimaryColorChanged(object? sender, Color color)
     {
@@ -146,6 +154,17 @@ public partial class ControllerEditor : ContentView
         {
             return;
         }
+
+        // Avoid redundant relayout: setting the scaling wrapper's size below can itself
+        // (re)trigger the scroll view's SizeChanged during layout settling.
+        if (_controllerVisual != null && _controllerView?.DisplayedController == controller &&
+            Math.Abs(availableWidth - _lastAvailableWidth) < 0.5 &&
+            Math.Abs(availableHeight - _lastAvailableHeight) < 0.5)
+        {
+            return;
+        }
+        _lastAvailableWidth = availableWidth;
+        _lastAvailableHeight = availableHeight;
 
         _scale = Math.Min(availableWidth / liveControllerWidth, availableHeight / liveControllerHeight);
 
@@ -231,6 +250,8 @@ public partial class ControllerEditor : ContentView
     }
     
     public void InvalidateCanvas() => _controllerView?.Invalidate();
+
+    public void SelectSlot(string widgetId, string? slotId) => _controllerView?.SelectWidget(widgetId, slotId);
 
     private void LoadWidgetDrawer()
     {
@@ -366,14 +387,86 @@ public partial class ControllerEditor : ContentView
                 ? FileHighlightBackground : Colors.Transparent;
         }
     }
+    private void RefreshControllerList()
+    {
+        ControllerListStack.Children.Clear();
+        foreach (var controller in ControllerManager.Controllers.Values.OrderBy(controller => controller.Name))
+        {
+            ControllerListStack.Children.Add(CreateControllerFile(controller.Name,
+                () => OnControllerFileClicked(controller)));
+        }
+    }
     
     private void OnControllerFileClicked(Controller controller)
     {
         _selectedController = controller;
+        LayoutPicker.SelectedItem = controller.Name;
         HighlightControllerFile();
         LoadController(controller);
     }
+    private void RefreshLayoutPicker()
+    {
+        var layoutNames = ControllerManager.Controllers.Keys.OrderBy(name => name).ToList();
+        LayoutPicker.ItemsSource = layoutNames;
+        LayoutPicker.SelectedItem = _selectedController?.Name ?? ControllerManager.ActiveController?.Name;
+    }
+    private void OnLayoutPickerSelectedIndexChanged(object? sender, EventArgs e)
+    {
+        if (LayoutPicker.SelectedItem is not string layoutName ||
+            !ControllerManager.Controllers.TryGetValue(layoutName, out var controller))
+        {
+            return;
+        }
+
+        ControllerManager.SetControllerAsActive(controller);
+        OnControllerFileClicked(controller);
+    }
+    private async void OnNewLayoutClicked(object? sender, EventArgs e)
+    {
+        var page = Application.Current?.Windows[0].Page;
+        if (page == null) return;
+
+        string? layoutName = await page.DisplayPromptAsync(
+            "New Layout", "Layout name", "Create", "Cancel", placeholder: "My layout");
+        if (string.IsNullOrWhiteSpace(layoutName)) return;
+
+        layoutName = layoutName.Trim();
+        if (layoutName.IndexOfAny(System.IO.Path.GetInvalidFileNameChars()) >= 0)
+        {
+            await page.DisplayAlertAsync(
+                "Invalid Layout Name", "The layout name contains characters that cannot be used in a file name.", "OK");
+            return;
+        }
+        if (ControllerManager.Controllers.ContainsKey(layoutName))
+        {
+            await page.DisplayAlertAsync("Layout Exists", "Choose a name that is not already in use.", "OK");
+            return;
+        }
+
+        var newController = await ControllerManager.CreateControllerAsync(layoutName);
+        ControllerManager.SetControllerAsActive(newController);
+        _selectedController = newController;
+        RefreshControllerList();
+        RefreshLayoutPicker();
+        HighlightControllerFile();
+        LoadController(newController);
+    }
     private void OnNewControllerFileClicked(object sender, EventArgs e) { }
+    private void OnBasicKeyboardModeClicked(object sender, EventArgs e) => SetInputDeviceType(VirtualDeviceType.InputSimulatorKeyboard);
+    private void OnXboxGamepadModeClicked(object sender, EventArgs e) => SetInputDeviceType(VirtualDeviceType.VigemXboxController);
+    private void SetInputDeviceType(VirtualDeviceType type)
+    {
+        if (InputDeviceType == type) return;
+        InputDeviceType = type;
+        RefreshModeButtons();
+        InputDeviceTypeChanged?.Invoke(this, type);
+    }
+    private void RefreshModeButtons()
+    {
+        BasicKeyboardButton.BackgroundColor = InputDeviceType == VirtualDeviceType.InputSimulatorKeyboard ? ActiveModeColor : InactiveModeColor;
+        XboxGamepadButton.BackgroundColor = InputDeviceType == VirtualDeviceType.VigemXboxController ? ActiveModeColor : InactiveModeColor;
+    }
+ 
     internal async Task DeleteWidgetAsync(string widgetId)
     {
         if (_selectedController == null) return;
@@ -429,6 +522,7 @@ public partial class ControllerEditor : ContentView
         };
 
         _selectedController.AddWidget(descriptor);
+        _controllerView?.SelectWidget(widgetId, null);
         _controllerView?.Invalidate();
         await ControllerManager.SaveControllerAsync(_selectedController.Name);
     }

@@ -1,11 +1,12 @@
 namespace OverjoyedVersion3;
 
-public enum DialInteractionMode { Click, Hover }
+public enum DialInteractionMode { LeftClick, RightClick, MiddleClick, Hover }
 
 public class Dial : Widget
 {
     private List<DialQuadrant> _quadrants;
     private string? _clickHeldSlotId;
+    private DialInteractionMode _clickHeldMode;
 
     private DialWidgetDescriptor DialDescriptor => (DialWidgetDescriptor)Descriptor;
 
@@ -140,20 +141,22 @@ public class Dial : Widget
         return "Quadrant_0";
     }
 
-    public override bool OnPress(PointF localPoint)
+    public override bool OnPress(PointF localPoint, MouseButtonKind button = MouseButtonKind.Left)
     {
         var slotId = GetHitSlotID(localPoint);
-        if (slotId == null || !IsModeEnabled(slotId, DialInteractionMode.Click)) return false;
+        var mode = ToInteractionMode(button);
+        if (slotId == null || !IsModeEnabled(slotId, mode)) return false;
 
         _clickHeldSlotId = slotId;
-        Controller.TriggerBindingDown(WidgetId, slotId, nameof(DialInteractionMode.Click));
+        _clickHeldMode = mode;
+        Controller.TriggerBindingDown(WidgetId, slotId, mode.ToString());
         return true;
     }
     public override void OnRelease()
     {
         if (_clickHeldSlotId != null)
         {
-            Controller.TriggerBindingUp(WidgetId, _clickHeldSlotId, nameof(DialInteractionMode.Click));
+            Controller.TriggerBindingUp(WidgetId, _clickHeldSlotId, _clickHeldMode.ToString());
             _clickHeldSlotId = null;
         }
     }
@@ -182,14 +185,25 @@ public class Dial : Widget
     {
         var key = $"{WidgetId}/{slotId}";
         if (!Controller.SlotData.TryGetValue(key, out var slotData))
-            return mode == DialInteractionMode.Click;
+            return false;
 
-        var option = $"{mode}Enabled";
-        if (slotData.Options.TryGetValue(option, out var enabled) && bool.TryParse(enabled, out var result))
-            return result;
+        var bindings = mode switch
+        {
+            DialInteractionMode.Hover => slotData.HoverBoundInputIds,
+            DialInteractionMode.RightClick => slotData.RightClickBoundInputIds,
+            DialInteractionMode.MiddleClick => slotData.MiddleClickBoundInputIds,
+            _ => slotData.ClickBoundInputIds,
+        };
+        if (bindings.Count > 0) return true;
 
-        return slotData.Options.GetValueOrDefault("InteractionMode", "Click") == mode.ToString();
+        return mode == DialInteractionMode.LeftClick && slotData.BoundInputIds.Count > 0;
     }
+    private static DialInteractionMode ToInteractionMode(MouseButtonKind button) => button switch
+    {
+        MouseButtonKind.Right => DialInteractionMode.RightClick,
+        MouseButtonKind.Middle => DialInteractionMode.MiddleClick,
+        _ => DialInteractionMode.LeftClick,
+    };
     private static List<DialQuadrant> CreateQuadrants(int count)
     {
         var list = new List<DialQuadrant>();
@@ -272,7 +286,7 @@ public class Dial : Widget
         }
     }
     private static Color GetIndicatorColor(SlotData? slotData) =>
-        Color.FromArgb(slotData?.Options.GetValueOrDefault("IndicatorColor", "#FFFFFF") ?? "#FFFFFF");
+        Color.FromArgb(slotData?.Options.GetValueOrDefault("IndicatorColor", "#000000") ?? "#000000");
     private PointF GetSlotIconCenter(int quadrantIndex, float cx, float cy, float dialR, float ringR)
     {
         var q = _quadrants[quadrantIndex];

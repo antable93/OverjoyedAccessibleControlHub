@@ -1,5 +1,7 @@
 namespace OverjoyedVersion3;
 
+public enum MouseButtonKind { Left, Right, Middle }
+
 public abstract class Widget : IDrawable
 {
     public Controller Controller { get; }
@@ -38,7 +40,7 @@ public abstract class Widget : IDrawable
     /// first, until one returns true. Returning true means "route the matching release to me,
     /// regardless of where the pointer is by then" (mirrors implicit pointer capture on press).
     /// </summary>
-    public virtual bool OnPress(PointF localPoint) => false;
+    public virtual bool OnPress(PointF localPoint, MouseButtonKind button = MouseButtonKind.Left) => false;
     /// <summary>
     /// Called on whichever widget's OnPress returned true for the matching press.
     /// </summary>

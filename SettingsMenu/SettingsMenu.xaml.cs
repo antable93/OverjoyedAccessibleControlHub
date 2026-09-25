@@ -17,7 +17,11 @@ public partial class SettingsMenu : ContentView
 
     public void Open()
     {
-        _controllerEditor ??= new ControllerEditor();
+        if (_controllerEditor == null)
+        {
+            _controllerEditor = new ControllerEditor();
+            _controllerEditor.CloseRequested += OnControllerEditorCloseRequested;
+        }
         _appearanceMenu ??= new AppearanceMenu();
         _windowOptionsMenu ??= new WindowOptionsMenu();
         _devicesMenu ??= new DevicesMenu();
@@ -37,6 +41,12 @@ public partial class SettingsMenu : ContentView
             _controllerEditor?.Close();
         }
         SubMenuContainer.Content = null;
+    }
+
+    private void OnControllerEditorCloseRequested(object? sender, EventArgs e)
+    {
+        Close();
+        IsVisible = false;
     }
 
     private void ShowSubmenu(View submenu)

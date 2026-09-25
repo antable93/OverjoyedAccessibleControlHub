@@ -4,17 +4,41 @@
              x:Class="OverjoyedVersion3.ControllerEditor">
 
     <Grid RowDefinitions="Auto, *">
-        <Label Grid.Row="0" Text="Controller Editor" FontSize="{DynamicResource TitleFontSize}" FontAttributes="Bold" Margin="0, 0, 0, 24" 
-               TextColor="{DynamicResource FontColor}"/>
+        <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0, 0, 0, 24">
+            <Label Grid.Column="0" Text="Controller Editor" FontSize="{DynamicResource TitleFontSize}" FontAttributes="Bold"
+                   TextColor="{DynamicResource FontColor}" VerticalOptions="Center"/>
+        </Grid>
         <!-- Editor Panels -->
         <Grid Grid.Row="1" RowDefinitions="2*, 1*" ColumnDefinitions="3.5*, 1*" RowSpacing="6" ColumnSpacing="6"
               HeightRequest="1100">
             <!-- Controller Panel -->
             <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource PanelBackground}">
-                    <ScrollView x:Name="ControllerCanvasScrollView" Grid.Row="1" Orientation="Both"
+                <Grid RowDefinitions="*, Auto">
+                    <ScrollView Grid.Row="0" x:Name="ControllerCanvasScrollView" Orientation="Both"
                                 SizeChanged="OnControllerCanvasSizeChanged">
                         <Grid x:Name="ControllerContainer" HorizontalOptions="Fill" VerticalOptions="Fill"/>
                     </ScrollView>
+
+                    <Border Grid.Row="1" BackgroundColor="#C5A63A" Padding="8,6" StrokeThickness="0" Margin="0,6,0,0"
+                            HorizontalOptions="Fill" VerticalOptions="End">
+                        <Grid ColumnDefinitions="Auto, Auto, *, Auto, Auto, Auto" ColumnSpacing="8">
+                            <Button Grid.Column="0" x:Name="BasicKeyboardButton" Text="Basic Keyboard"
+                                    FontSize="{DynamicResource SubtextFontSize}" HeightRequest="42" Padding="18,0"
+                                    CornerRadius="4" TextColor="{DynamicResource FontColor}" Clicked="OnBasicKeyboardModeClicked"/>
+                            <Button Grid.Column="1" x:Name="XboxGamepadButton" Text="Xbox Gamepad"
+                                    FontSize="{DynamicResource SubtextFontSize}" HeightRequest="42" Padding="18,0"
+                                    CornerRadius="4" TextColor="{DynamicResource FontColor}" Clicked="OnXboxGamepadModeClicked"/>
+                            <Button Grid.Column="3" Text="New Layout" WidthRequest="130"
+                                Style="{StaticResource PanelButton}" Clicked="OnNewLayoutClicked"/>
+                            <Picker Grid.Column="4" x:Name="LayoutPicker" Title="Layout" WidthRequest="180"
+                                FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}"
+                                BackgroundColor="{DynamicResource FieldColor}"
+                                SelectedIndexChanged="OnLayoutPickerSelectedIndexChanged"/>
+                            <Button Grid.Column="5" Text="Start Overjoyed" WidthRequest="160"
+                                    Style="{StaticResource PanelButton}" Clicked="OnStartOverjoyedClicked"/>
+                        </Grid>
+                    </Border>
+                </Grid>
             </Border>
 
             <!-- Browser Panels -->

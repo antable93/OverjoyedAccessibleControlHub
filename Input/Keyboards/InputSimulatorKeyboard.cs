@@ -93,4 +93,37 @@ public class InputSimulatorKeyboard : VirtualInputDevice
             up: () => _kb.KeyUp(code)
         );
     }
+
+    protected override Dictionary<string, AxisInput> CreateAxisInputs()
+    {
+        return new List<AxisInput>
+        {
+            CreateDirectionalAxis2D("WASD", VirtualKeyCode.VK_A, VirtualKeyCode.VK_D, VirtualKeyCode.VK_W, VirtualKeyCode.VK_S),
+            CreateDirectionalAxis2D("Arrow Keys", VirtualKeyCode.LEFT, VirtualKeyCode.RIGHT, VirtualKeyCode.UP, VirtualKeyCode.DOWN),
+        }.ToDictionary(a => a.InputId);
+    }
+
+    // Keyboards can't report analog position, so joystick movement is translated into
+    // discrete key presses/releases once the stick crosses a deadzone threshold per direction.
+    private AxisInput CreateDirectionalAxis2D(string inputId, VirtualKeyCode left, VirtualKeyCode right, VirtualKeyCode up, VirtualKeyCode down)
+    {
+        bool leftDown = false, rightDown = false, upDown = false, downDown = false;
+        const float threshold = 0.5f;
+
+        return new AxisInput(
+            inputId,
+            move2D: (x, y) =>
+            {
+                bool wantLeft = x < -threshold;
+                bool wantRight = x > threshold;
+                bool wantUp = y < -threshold;
+                bool wantDown = y > threshold;
+
+                if (wantLeft != leftDown) { if (wantLeft) _kb.KeyDown(left); else _kb.KeyUp(left); leftDown = wantLeft; }
+                if (wantRight != rightDown) { if (wantRight) _kb.KeyDown(right); else _kb.KeyUp(right); rightDown = wantRight; }
+                if (wantUp != upDown) { if (wantUp) _kb.KeyDown(up); else _kb.KeyUp(up); upDown = wantUp; }
+                if (wantDown != downDown) { if (wantDown) _kb.KeyDown(down); else _kb.KeyUp(down); downDown = wantDown; }
+            }
+        );
+    }
 }

@@ -27,8 +27,16 @@ public class VigemXboxController : VirtualInputDevice
             CreateButton("Xbox Y",           Xbox360Button.Y),
             CreateButton("Xbox LB",          Xbox360Button.LeftShoulder),
             CreateButton("Xbox RB",          Xbox360Button.RightShoulder),
-            CreateButton("Xbox LS",          Xbox360Button.LeftThumb),
-            CreateButton("Xbox RS",          Xbox360Button.RightThumb),
+            CreateButton("Xbox LS Click",    Xbox360Button.LeftThumb),
+            CreateButton("Xbox RS Click",    Xbox360Button.RightThumb),
+            CreateStickButton("Xbox LS Up",    Xbox360Axis.LeftThumbY,  1f),
+            CreateStickButton("Xbox LS Down",  Xbox360Axis.LeftThumbY,  -1f),
+            CreateStickButton("Xbox LS Left",  Xbox360Axis.LeftThumbX,  -1f),
+            CreateStickButton("Xbox LS Right", Xbox360Axis.LeftThumbX,  1f),
+            CreateStickButton("Xbox RS Up",    Xbox360Axis.RightThumbY, 1f),
+            CreateStickButton("Xbox RS Down",  Xbox360Axis.RightThumbY, -1f),
+            CreateStickButton("Xbox RS Left",  Xbox360Axis.RightThumbX, -1f),
+            CreateStickButton("Xbox RS Right", Xbox360Axis.RightThumbX, 1f),
             CreateButton("Xbox D-Pad Up",    Xbox360Button.Up),
             CreateButton("Xbox D-Pad Down",  Xbox360Button.Down),
             CreateButton("Xbox D-Pad Left",  Xbox360Button.Left),
@@ -81,6 +89,21 @@ public class VigemXboxController : VirtualInputDevice
             },
             up: () => {
                 _controller.SetSliderValue(slider, 0);
+                _controller.SubmitReport();
+            }
+        );
+    }
+    // Digital press of an analog stick direction, letting a click/hover binding drive a single axis like a button.
+    private ActionInput CreateStickButton(string inputId, Xbox360Axis axis, float direction)
+    {
+        return new ActionInput(
+            inputId,
+            down: () => {
+                _controller.SetAxisValue(axis, (short)(direction * short.MaxValue));
+                _controller.SubmitReport();
+            },
+            up: () => {
+                _controller.SetAxisValue(axis, 0);
                 _controller.SubmitReport();
             }
         );

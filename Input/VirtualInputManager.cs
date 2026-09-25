@@ -57,4 +57,9 @@ public class VirtualInputManager
     public IEnumerable<string> GetAllAxisInputLabels() => _devices.SelectMany(d => d.AxisInputs.Keys);
     public IEnumerable<string> GetAllInputLabels() => 
         _devices.SelectMany(d => d.ActionInputs.Keys).Concat(_devices.SelectMany(d => d.ActionInputs.Keys));
+
+    public IEnumerable<string> GetActionInputLabels(VirtualDeviceType deviceType) =>
+        _devices.Where(d => d.VirtualDeviceType == deviceType).SelectMany(d => d.ActionInputs.Keys);
+    public IEnumerable<string> GetAxisInputLabels(VirtualDeviceType deviceType) =>
+        _devices.Where(d => d.VirtualDeviceType == deviceType).SelectMany(d => d.AxisInputs.Keys);
 }

@@ -65,6 +65,8 @@ public static class IconManager
         ["keyboard_arrow_down"] = "Icons/Keyboard/keyboard_arrow_down.svg",
         ["keyboard_arrow_left"] = "Icons/Keyboard/keyboard_arrow_left.svg",
         ["keyboard_arrow_right"] = "Icons/Keyboard/keyboard_arrow_right.svg",
+        ["keyboard_arrows_all"] = "Icons/Keyboard/keyboard_arrows_all.svg",
+        ["keyboard_wasd"] = "Icons/Keyboard/keyboard_wasd.svg",
         ["keyboard_enter"] = "Icons/Keyboard/keyboard_enter.svg",
         ["keyboard_tab"] = "Icons/Keyboard/keyboard_tab.svg",
         ["keyboard_space"] = "Icons/Keyboard/keyboard_space.svg",
@@ -110,6 +112,14 @@ public static class IconManager
         ["xbox_stick_r"] = "Icons/XboxController/xbox_stick_r.svg",
         ["xbox_stick_top_l"] = "Icons/XboxController/xbox_stick_top_l.svg",
         ["xbox_stick_top_r"] = "Icons/XboxController/xbox_stick_top_r.svg",
+        ["xbox_stick_l_up"] = "Icons/XboxController/xbox_stick_l_up.svg",
+        ["xbox_stick_l_down"] = "Icons/XboxController/xbox_stick_l_down.svg",
+        ["xbox_stick_l_left"] = "Icons/XboxController/xbox_stick_l_left.svg",
+        ["xbox_stick_l_right"] = "Icons/XboxController/xbox_stick_l_right.svg",
+        ["xbox_stick_r_up"] = "Icons/XboxController/xbox_stick_r_up.svg",
+        ["xbox_stick_r_down"] = "Icons/XboxController/xbox_stick_r_down.svg",
+        ["xbox_stick_r_left"] = "Icons/XboxController/xbox_stick_r_left.svg",
+        ["xbox_stick_r_right"] = "Icons/XboxController/xbox_stick_r_right.svg",
     };
 
     public static event EventHandler? IconsRecolored;

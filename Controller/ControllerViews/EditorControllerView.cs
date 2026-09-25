@@ -67,6 +67,27 @@ public class EditorControllerView : ControllerView
         }
     }
     /// <summary>
+    /// Selects the given widget/slot programmatically (e.g. right after a drag-drop creates a new
+    /// widget), mirroring what a direct click would do: updates the selection outline, remembers it
+    /// for RestoreLastSelectedWidget, and fires WidgetSelected so the inspector opens.
+    /// </summary>
+    public void SelectWidget(string widgetId, string? slotId)
+    {
+        if (!DisplayedController.Widgets.TryGetValue(widgetId, out var widget)) return;
+
+        if (_lastSelectedWidgetId != null && _lastSelectedWidgetId != widgetId &&
+            DisplayedController.Widgets.TryGetValue(_lastSelectedWidgetId, out var previousWidget))
+        {
+            previousWidget.SelectedSlotId = null;
+        }
+
+        widget.SelectedSlotId = slotId;
+        _lastSelectedWidgetId = widgetId;
+        _lastSelectedSlotId = slotId;
+        WidgetSelected?.Invoke(widget, slotId);
+        Invalidate();
+    }
+    /// <summary>
     /// Clears the last widget selection. 
     /// Called before removing a widget from the controller.
     /// </summary>

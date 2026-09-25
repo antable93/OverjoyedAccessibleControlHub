@@ -5,11 +5,14 @@ public partial class JoystickOptionsPanel : ContentView
     private static readonly Color ActiveColor = Color.FromArgb("#3A4A6A");
     private static Color InactiveColor => SettingsManager.FieldColor;
 
-    private static readonly string[] AvailableIcons =
+    private static readonly string[] XboxIcons =
     [
         "xbox_stick_l",     "xbox_stick_r",
-        "xbox_stick_top_l", "xbox_stick_top_r"
+        "xbox_stick_top_l", "xbox_stick_top_r",
+        "xbox_stick_l_up",  "xbox_stick_l_down",  "xbox_stick_l_left",  "xbox_stick_l_right",
+        "xbox_stick_r_up",  "xbox_stick_r_down",  "xbox_stick_r_left",  "xbox_stick_r_right"
     ];
+    private static readonly string[] KeyboardIcons = ["keyboard_wasd", "keyboard_arrows_all"];
 
     private readonly ControllerEditor _editor;
     private Joystick? _widget;
@@ -28,6 +31,11 @@ public partial class JoystickOptionsPanel : ContentView
         SettingsManager.SecondaryColorChanged += (_, _) => RefreshInactiveColors();
         SettingsManager.FontColorChanged += (_, _) => RefreshTextColors();
         IconManager.IconsRecolored += (_, _) => RefreshIconColors();
+        _editor.InputDeviceTypeChanged += (_, _) =>
+        {
+            CreateBindingList();
+            CreateIconList();
+        };
         InitializePanel();
 
         XSlider.ValueChanged += (_, e) => XLabel.Text = $"X  {(int)e.NewValue}";
@@ -123,6 +131,7 @@ public partial class JoystickOptionsPanel : ContentView
         _bindingButtons.Clear();
         CreateBindingList();
 
+        CreateIconList();
         RefreshIconListSelection();
         _isUpdating = false;
     }
@@ -130,12 +139,16 @@ public partial class JoystickOptionsPanel : ContentView
     // Helpers
     private void CreateBindingList()
     {
+        if (_widget == null) return;
+        BindingListLayout.Children.Clear();
+        _bindingButtons.Clear();
         var key = $"{Descriptor.WidgetId}/{_slotId}";
         Controller.SlotData.TryGetValue(key, out var slotDataForList);
         var selected = slotDataForList?.BoundInputIds.ToHashSet() ?? new HashSet<string>();
 
-        var availableInputIds = VirtualInputManager.Instance.GetAllAxisInputLabels()
-            .Where(inputId => VirtualInputManager.Instance.FindAxisInput(inputId)?.Move2D != null);
+
+        var availableInputIds = VirtualInputManager.Instance.GetAxisInputLabels(_editor.InputDeviceType)
+                   .Where(inputId => VirtualInputManager.Instance.FindAxisInput(inputId)?.Move2D != null);
 
         foreach (var inputId in availableInputIds)
         {
@@ -149,7 +162,12 @@ public partial class JoystickOptionsPanel : ContentView
     }
     private void CreateIconList()
     {
-        foreach (var name in AvailableIcons)
+        IconListLayout.Children.Clear();
+        _iconListButtons.Clear();
+
+        var availableIcons = _editor.InputDeviceType == VirtualDeviceType.InputSimulatorKeyboard
+            ? KeyboardIcons : XboxIcons;
+        foreach (var name in availableIcons)
         {
             var image = new Image { Aspect = Aspect.AspectFit, Margin = new Thickness(6), Source = IconManager.GetIcon(name) };
             var border = new Border
@@ -372,15 +390,31 @@ public partial class JoystickOptionsPanel : ContentView
     {
         if (_widget != null) _ = _editor.DeleteWidgetAsync(_widget.WidgetId);
     }
+    private void OnTransformHeaderTapped(object? sender, EventArgs e) => ToggleSection(TransformContent, TransformChevron);
+    private void OnAppearanceHeaderTapped(object? sender, EventArgs e) => ToggleSection(AppearanceContent, AppearanceChevron);
+    private void OnIndicatorHeaderTapped(object? sender, EventArgs e) => ToggleSection(IndicatorContent, IndicatorChevron);
+    private void OnBehaviorHeaderTapped(object? sender, EventArgs e) => ToggleSection(BehaviorContent, BehaviorChevron);
+    private void OnDangerZoneHeaderTapped(object? sender, EventArgs e) => ToggleSection(DeleteWidgetButton, DangerZoneChevron);
+    private static void ToggleSection(VisualElement content, Label chevron)
+    {
+        content.IsVisible = !content.IsVisible;
+        chevron.Text = content.IsVisible ? "\u25BE" : "\u25B8";
+    }
 
     private async Task BindAction(string inputId)
     {
-        var key = $"{Descriptor.WidgetId}/{_slotId}";
-        bool wasSelected = Controller.SlotData.TryGetValue(key, out var slot) && slot.BoundInputIds.Contains(inputId);
+        var slot = Controller.GetOrCreateSlotData(Descriptor.WidgetId, _slotId);
+        bool wasSelected = slot.BoundInputIds.Contains(inputId);
 
-        await Controller.Bind(Descriptor.WidgetId, _slotId, inputId);
+        slot.BoundInputIds.Clear();
+        if (!wasSelected)
+            slot.BoundInputIds.Add(inputId);
 
-        if (_bindingButtons.TryGetValue(inputId, out var btn))
-            btn.BackgroundColor = wasSelected ? InactiveColor : ActiveColor;
+        await ControllerManager.SaveControllerAsync(Controller.Name);
+        CreateBindingList();
+
+        if (!wasSelected &&
+            BindingIconMap.TryGetIcon(inputId, out var iconName) && _iconListButtons.ContainsKey(iconName))
+            await OnIconSelectedAsync(iconName);
     }
 }

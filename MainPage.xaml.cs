@@ -5,6 +5,8 @@ namespace OverjoyedVersion3
         private LiveControllerView? _controllerView;
         private SettingsMenu? _settingsMenu;
 
+        public event EventHandler? Appeared;
+
         public MainPage()
         {
             InitializeComponent();
@@ -24,22 +26,9 @@ namespace OverjoyedVersion3
                 RootGrid.Add(_settingsMenu);
             }
 
-            var controller = ControllerManager.ActiveController;
-            if (controller != null)
-            {
-                if (_controllerView == null)
-                {
-                    _controllerView = new LiveControllerView(controller);
-                    CanvasScrollView.Content = _controllerView;
-                }
-                else
-                {
-                    _controllerView.DisplayController(controller);
-                }
+            DisplayActiveController();
 
-                _controllerView.WidthRequest = Controller.GetLiveControllerWidth();
-                _controllerView.HeightRequest = Controller.GetLiveControllerHeight();
-            }
+            Appeared?.Invoke(this, EventArgs.Empty);
         }
 
         public void OpenSettings()
@@ -54,6 +43,26 @@ namespace OverjoyedVersion3
             if (_settingsMenu == null) return;
             _settingsMenu.Close();
             _settingsMenu.IsVisible = false;
+            DisplayActiveController();
+        }
+
+        private void DisplayActiveController()
+        {
+            var controller = ControllerManager.ActiveController;
+            if (controller == null) return;
+
+            if (_controllerView == null)
+            {
+                _controllerView = new LiveControllerView(controller);
+                CanvasScrollView.Content = _controllerView;
+            }
+            else
+            {
+                _controllerView.DisplayController(controller);
+            }
+
+            _controllerView.WidthRequest = Controller.GetLiveControllerWidth();
+            _controllerView.HeightRequest = Controller.GetLiveControllerHeight();
         }
     }
 }

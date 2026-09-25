@@ -28,6 +28,13 @@ public static class ControllerManager
 
         // Load all the controllers from the ControllerDirectory.
         await LoadAllControllersAsync();
+        if (Controllers.Count == 0)
+        {
+            var defaultController = new Controller();
+            AddController(defaultController);
+            await WriteControllerAsync(defaultController, $"{defaultController.Name}.json");
+        }
+
         foreach (var controller in Controllers.Values)
         {
             controller.Initialize();
@@ -77,6 +84,13 @@ public static class ControllerManager
     public static async Task SaveControllerAsync(Controller controller, string fileName)
     {
         await WriteControllerAsync(controller, fileName);
+    }
+    public static async Task<Controller> CreateControllerAsync(string name)
+    {
+        var controller = new Controller { Name = name };
+        AddController(controller);
+        await SaveControllerAsync(name);
+        return controller;
     }
 
     /// <summary>

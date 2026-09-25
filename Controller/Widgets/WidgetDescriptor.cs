@@ -36,7 +36,7 @@ public class JoystickWidgetDescriptor : WidgetDescriptor
     public JoystickWidgetDescriptor() { WidgetType = WidgetType.Joystick; }
     public float IndicatorOffsetX { get; set; } = 0f;
     public float IndicatorOffsetY { get; set; } = 0f;
-    public string IndicatorColor { get; set; } = "#FFFFFF";
+    public string IndicatorColor { get; set; } = "#000000";
     public float RingRadius { get; set; } = 150f;
     public float KnobRadius { get; set; } = 50f;
     public float SensitivityX { get; set; } = 100.0f;
