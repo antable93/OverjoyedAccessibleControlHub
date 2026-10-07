@@ -24,6 +24,7 @@ public static class IconManager
         ["paint-roller"] = "Icons/Misc/paint-roller.svg",
         ["options"] = "Icons/Misc/options.svg",
         ["mouse"] = "Icons/Misc/mouse.svg",
+        ["eye"] = "Icons/Misc/eye.svg",
         ["trash"] = "Icons/Misc/trash.svg",
         ["question"] = "Icons/Misc/question.svg",
         ["dial"] = "Icons/Widgets/dial.svg",

@@ -20,6 +20,7 @@ public class SlotData
 public class Controller
 {
     public string Name { get; set; } = "Default";
+    public VirtualDeviceType InputDeviceType { get; set; } = VirtualDeviceType.InputSimulatorKeyboard;
     [JsonObjectCreationHandling(JsonObjectCreationHandling.Populate)]
     public List<WidgetDescriptor> Layout { get; private set; } = new();
     [JsonObjectCreationHandling(JsonObjectCreationHandling.Populate)]

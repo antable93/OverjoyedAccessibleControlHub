@@ -42,7 +42,7 @@ public static class ControllerManager
 
         if (Controllers.Count > 0)
         {
-            ActiveController = Controllers.Values.First();
+            SetControllerAsActive(Controllers.Values.First());
         }
     }
 
@@ -68,6 +68,12 @@ public static class ControllerManager
         if (controller == null) return;
 
         ActiveController = controller;
+        VirtualInputManager.Instance.DeactivateAllVirtualInputDevices();
+    }
+
+    public static void ActivateActiveController()
+    {
+        VirtualInputManager.Instance.SetActiveVirtualInputDevice(ActiveController.InputDeviceType);
     }
 
     /// <summary>
@@ -85,9 +91,10 @@ public static class ControllerManager
     {
         await WriteControllerAsync(controller, fileName);
     }
-    public static async Task<Controller> CreateControllerAsync(string name)
+    public static async Task<Controller> CreateControllerAsync(
+        string name, VirtualDeviceType inputDeviceType = VirtualDeviceType.InputSimulatorKeyboard)
     {
-        var controller = new Controller { Name = name };
+        var controller = new Controller { Name = name, InputDeviceType = inputDeviceType };
         AddController(controller);
         await SaveControllerAsync(name);
         return controller;

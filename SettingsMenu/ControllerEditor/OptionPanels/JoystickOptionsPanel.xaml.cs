@@ -147,8 +147,7 @@ public partial class JoystickOptionsPanel : ContentView
         var selected = slotDataForList?.BoundInputIds.ToHashSet() ?? new HashSet<string>();
 
 
-        var availableInputIds = VirtualInputManager.Instance.GetAxisInputLabels(_editor.InputDeviceType)
-                   .Where(inputId => VirtualInputManager.Instance.FindAxisInput(inputId)?.Move2D != null);
+        var availableInputIds = VirtualInputManager.Instance.Get2DAxisInputLabels(_editor.InputDeviceType);
 
         foreach (var inputId in availableInputIds)
         {

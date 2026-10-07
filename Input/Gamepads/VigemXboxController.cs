@@ -4,18 +4,43 @@ using Nefarius.ViGEm.Client.Targets.Xbox360;
 
 namespace OverjoyedVersion3;
 
-public class VigemXboxController : VirtualInputDevice
+public class VigemXboxController : VirtualInputDevice, IDisposable
 {
-    private readonly ViGEmClient _client;
-    private readonly IXbox360Controller _controller;
+    private ViGEmClient? _client;
+    private IXbox360Controller? _controller;
 
     public VigemXboxController()
     {
         VirtualDeviceType = VirtualDeviceType.VigemXboxController; 
-        _client = new ViGEmClient();
-        _controller = _client.CreateXbox360Controller();
-        _controller.Connect();
     }
+
+    public override void Activate()
+    {
+        if (_client != null) return;
+
+        var client = new ViGEmClient();
+        var controller = client.CreateXbox360Controller();
+        try
+        {
+            controller.Connect();
+            _client = client;
+            _controller = controller;
+        }
+        catch
+        {
+            client.Dispose();
+            throw;
+        }
+    }
+
+    public override void Deactivate()
+    {
+        _client?.Dispose();
+        _client = null;
+        _controller = null;
+    }
+
+    public void Dispose() => Deactivate();
 
     protected override Dictionary<string, ActionInput> CreateActionInputs()
     {
@@ -70,10 +95,12 @@ public class VigemXboxController : VirtualInputDevice
         return new ActionInput(
             inputId,
             down: () => {
+                if (_controller == null) return;
                 _controller.SetButtonState(button, true);
                 _controller.SubmitReport();
             },
             up: () => {
+                if (_controller == null) return;
                 _controller.SetButtonState(button, false);
                 _controller.SubmitReport();
             }
@@ -84,10 +111,12 @@ public class VigemXboxController : VirtualInputDevice
         return new ActionInput(
             inputId,
             down: () => {
+                if (_controller == null) return;
                 _controller.SetSliderValue(slider, 255);
                 _controller.SubmitReport();
             },
             up: () => {
+                if (_controller == null) return;
                 _controller.SetSliderValue(slider, 0);
                 _controller.SubmitReport();
             }
@@ -99,10 +128,12 @@ public class VigemXboxController : VirtualInputDevice
         return new ActionInput(
             inputId,
             down: () => {
+                if (_controller == null) return;
                 _controller.SetAxisValue(axis, (short)(direction * short.MaxValue));
                 _controller.SubmitReport();
             },
             up: () => {
+                if (_controller == null) return;
                 _controller.SetAxisValue(axis, 0);
                 _controller.SubmitReport();
             }
@@ -114,6 +145,7 @@ public class VigemXboxController : VirtualInputDevice
         return new AxisInput(
             inputId,
             move1D: (value) => {
+                if (_controller == null) return;
                 _controller.SetAxisValue(axis, (short)(value * direction * short.MaxValue));
                 _controller.SubmitReport();
             }
@@ -125,6 +157,7 @@ public class VigemXboxController : VirtualInputDevice
         return new AxisInput(
             inputId,
             move2D: (x, y) =>{
+                if (_controller == null) return;
                 _controller.SetAxisValue(axisX, (short)(x * short.MaxValue));
                 _controller.SetAxisValue(axisY, (short)(y * short.MaxValue));
                 _controller.SubmitReport();

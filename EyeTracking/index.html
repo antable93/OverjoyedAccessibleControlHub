@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-src 'none'">
+  <title>Overjoyed Eye Tracking</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Webcam eye tracking</h1>
+      <button id="show-help" type="button">Help and licenses</button>
+    </header>
+    <div class="controls">
+      <label for="camera">Camera</label>
+      <select id="camera">
+        <option value="">System default camera</option>
+      </select>
+      <button id="grant-camera" type="button">Grant camera access</button>
+      <button id="refresh-cameras" type="button">Refresh cameras</button>
+    </div>
+    <div class="controls">
+      <label class="processing-label" for="delegate">Processing</label>
+      <select id="delegate">
+        <option value="CPU">CPU (compatible)</option>
+        <option value="GPU">GPU (faster)</option>
+      </select>
+      <button id="start" type="button">Start Camera</button>
+      <button id="calibrate" type="button" disabled>Calibrate</button>
+      <button id="stop" type="button" disabled>Stop Camera</button>
+    </div>
+    <fieldset class="stabilization">
+      <legend>Gaze stabilization</legend>
+      <div class="controls">
+        <label for="stabilization">Strength</label>
+        <select id="stabilization" aria-describedby="stabilization-help">
+          <option value="off">Off (raw gaze)</option>
+          <option value="light">Light</option>
+          <option value="balanced" selected>Balanced</option>
+          <option value="strong">Strong</option>
+        </select>
+        <span class="slider-group">
+          <label for="stability-radius">Radius</label>
+          <input id="stability-radius" type="range" min="0" max="60" step="1" value="18"
+                 aria-label="Stability radius" aria-describedby="stabilization-help">
+          <output id="stability-radius-value" for="stability-radius">18 px</output>
+        </span>
+        <span class="slider-group">
+          <label for="gaze-speed">Speed</label>
+          <input id="gaze-speed" type="range" min="10" max="100" step="5" value="50"
+                 aria-label="Circle speed" aria-describedby="stabilization-help">
+          <output id="gaze-speed-value" for="gaze-speed">50%</output>
+        </span>
+      </div>
+    </fieldset>
+    <fieldset class="stabilization joystick">
+      <legend>Gaze joystick</legend>
+      <div class="controls">
+        <label class="checkbox"><input id="joystick" type="checkbox" checked aria-describedby="joystick-help"> Enabled</label>
+        <span class="slider-group">
+          <label for="joystick-speed">Speed</label>
+          <input id="joystick-speed" type="range" min="50" max="800" step="25" value="300"
+                 aria-label="Joystick maximum speed" aria-describedby="joystick-help">
+          <output id="joystick-speed-value" for="joystick-speed">300 px/s</output>
+        </span>
+        <span class="slider-group">
+          <label for="dead-zone">Dead zone</label>
+          <input id="dead-zone" type="range" min="5" max="40" step="1" value="15"
+                 aria-label="Joystick dead zone" aria-describedby="joystick-help">
+          <output id="dead-zone-value" for="dead-zone">15%</output>
+        </span>
+        <button id="recenter" type="button" disabled>Recenter</button>
+      </div>
+    </fieldset>
+    <section class="tracking-status" aria-label="Tracking status">
+      <p id="camera-status" role="status" aria-live="polite">Select Grant camera access to reveal available webcams.</p>
+      <p id="status" role="status" aria-live="polite">Camera is off. Select Start Camera to grant access.</p>
+      <p id="coordinates">No gaze prediction.</p>
+    </section>
+    <div class="preview-area">
+      <video id="preview" autoplay muted playsinline aria-label="Local webcam preview"></video>
+    </div>
+  </main>
+  <dialog id="help" aria-labelledby="help-title">
+    <header>
+      <h2 id="help-title">Help and licenses</h2>
+      <button id="close-help" type="button" autofocus>Close</button>
+    </header>
+    <div class="help-content">
+      <p>Keep your head steady and face the camera. Tracking stays on this device and does not control your dial yet.</p>
+      <p>Grant camera access briefly opens the default camera to reveal available webcams, including virtual cameras, then stops it.</p>
+      <p>Calibration shows 17 targets. Look at each target until it moves. Press Escape or Stop Camera to cancel.</p>
+      <p id="stabilization-help">Stabilization filters isolated spikes and holds small fluctuations still.
+        Larger radii and Strong mode reduce shaking but add lag and hold-position offset.
+        Lower Speed makes the circle glide more slowly toward where you look.
+        Applies only to the green gaze indicator, not your mouse or clicks.
+        During tracking loss, the circle holds its last known position; it is not a live estimate.</p>
+      <p id="joystick-help">Gaze joystick: after calibration, a blue dot starts at the centre of the panel.
+        Look away from the centre to push it in that direction; looking further away moves it faster.
+        Looking inside the dashed dead zone, or losing tracking, stops it. Recenter returns it to the middle.</p>
+      <h3>Licenses and attribution</h3>
+      <p>Powered by RealEye Webcam EyeTracker Light Open, copyright 2025-2026 RealEye sp. z o.o.
+        This component is dual-licensed; it is not covered by the hub's MIT license.</p>
+      <ul>
+        <li><a href="licenses/realeye/LICENSE">RealEye license options</a></li>
+        <li><a href="licenses/realeye/LICENSE-AGPL.md">AGPL-3.0-or-later</a></li>
+        <li><a href="licenses/realeye/LICENSE-COMMERCIAL.md">Commercial terms</a></li>
+        <li><a href="licenses/realeye/THIRD_PARTY_NOTICES.md">Third-party notices</a></li>
+        <li><a href="licenses/model-notices.md">Model notices</a></li>
+      </ul>
+    </div>
+  </dialog>
+  <div id="calibration" hidden>
+    <p id="calibration-status" role="status" aria-live="polite"></p>
+    <button id="cancel" type="button">Stop Camera</button>
+    <div id="target" aria-hidden="true"></div>
+  </div>
+  <div id="gaze" hidden aria-hidden="true"></div>
+  <div id="dead-zone-ring" hidden aria-hidden="true"></div>
+  <div id="control" hidden aria-hidden="true"></div>
+  <script type="module" src="tracker.js"></script>
+</body>
+</html>

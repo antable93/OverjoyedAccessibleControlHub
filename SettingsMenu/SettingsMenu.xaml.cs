@@ -6,6 +6,7 @@ public partial class SettingsMenu : ContentView
     private AppearanceMenu? _appearanceMenu;
     private WindowOptionsMenu? _windowOptionsMenu;
     private DevicesMenu? _devicesMenu;
+    private EyeTrackingMenu? _eyeTrackingMenu;
     
     private View? _activeSubmenu;
 
@@ -36,6 +37,7 @@ public partial class SettingsMenu : ContentView
 
     public void Close()
     {
+        _eyeTrackingMenu?.Deactivate();
         if (_activeSubmenu == _controllerEditor)
         {
             _controllerEditor?.Close();
@@ -51,8 +53,15 @@ public partial class SettingsMenu : ContentView
 
     private void ShowSubmenu(View submenu)
     {
+        if (_activeSubmenu == _eyeTrackingMenu && submenu != _eyeTrackingMenu)
+            _eyeTrackingMenu?.Deactivate();
+
         _activeSubmenu = submenu;
+        SubMenuContainer.VerticalOptions = submenu == _eyeTrackingMenu
+            ? LayoutOptions.Fill : LayoutOptions.Start;
         SubMenuContainer.Content = submenu;
+        if (submenu == _eyeTrackingMenu)
+            _eyeTrackingMenu?.Activate();
         UpdateButtonHighlights();
     }
 
@@ -62,6 +71,7 @@ public partial class SettingsMenu : ContentView
         AppearanceButton.BackgroundColor = Colors.Transparent;
         WindowOptionsButton.BackgroundColor = Colors.Transparent;
         DevicesButton.BackgroundColor = Colors.Transparent;
+        EyeTrackingButton.BackgroundColor = Colors.Transparent;
 
         if (_activeSubmenu == _controllerEditor)
         {
@@ -78,6 +88,10 @@ public partial class SettingsMenu : ContentView
         else if (_activeSubmenu == _devicesMenu)
         {
             DevicesButton.BackgroundColor = SettingsManager.SecondaryColor;
+        }
+        else if (_activeSubmenu == _eyeTrackingMenu)
+        {
+            EyeTrackingButton.BackgroundColor = SettingsManager.SecondaryColor;
         }
     }
 
@@ -127,5 +141,12 @@ public partial class SettingsMenu : ContentView
         UpdateButtonHighlights();
     }
 
+    private void OnEyeTrackingButtonClicked(object? sender, EventArgs e)
+    {
+        _eyeTrackingMenu ??= new EyeTrackingMenu();
+        if (_activeSubmenu != _eyeTrackingMenu)
+            ShowSubmenu(_eyeTrackingMenu);
+        UpdateButtonHighlights();
+    }
 
 }

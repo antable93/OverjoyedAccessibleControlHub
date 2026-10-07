@@ -5,9 +5,6 @@ namespace OverjoyedVersion3;
 
 public partial class ControllerEditor : ContentView
 {
-    private static readonly Color ActiveModeColor = Color.FromArgb("#3A4A6A");
-    private static Color InactiveModeColor => SettingsManager.FieldColor;
-
     private Controller? _selectedController;
 
     public VirtualDeviceType InputDeviceType { get; private set; } = VirtualDeviceType.InputSimulatorKeyboard;
@@ -45,7 +42,6 @@ public partial class ControllerEditor : ContentView
         RefreshControllerList();
         RefreshLayoutPicker();
         LoadWidgetDrawer();
-        RefreshModeButtons();
     }
 
     private void RefreshTextColors()
@@ -99,7 +95,11 @@ public partial class ControllerEditor : ContentView
 #endif
     }
 
-    private void OnStartOverjoyedClicked(object? sender, EventArgs e) => CloseRequested?.Invoke(this, EventArgs.Empty);
+    private void OnStartOverjoyedClicked(object? sender, EventArgs e)
+    {
+        ControllerManager.ActivateActiveController();
+        CloseRequested?.Invoke(this, EventArgs.Empty);
+    }
 
     private void OnPrimaryColorChanged(object? sender, Color color)
     {
@@ -400,6 +400,7 @@ public partial class ControllerEditor : ContentView
     private void OnControllerFileClicked(Controller controller)
     {
         _selectedController = controller;
+        SetInputDeviceType(controller.InputDeviceType);
         LayoutPicker.SelectedItem = controller.Name;
         HighlightControllerFile();
         LoadController(controller);
@@ -426,6 +427,16 @@ public partial class ControllerEditor : ContentView
         var page = Application.Current?.Windows[0].Page;
         if (page == null) return;
 
+        string? layoutType = await page.DisplayActionSheetAsync(
+            "Choose a layout type", "Cancel", null, "Basic Keyboard", "Xbox Gamepad");
+        VirtualDeviceType inputDeviceType = layoutType switch
+        {
+            "Basic Keyboard" => VirtualDeviceType.InputSimulatorKeyboard,
+            "Xbox Gamepad" => VirtualDeviceType.VigemXboxController,
+            _ => (VirtualDeviceType)(-1)
+        };
+        if (!Enum.IsDefined(inputDeviceType)) return;
+
         string? layoutName = await page.DisplayPromptAsync(
             "New Layout", "Layout name", "Create", "Cancel", placeholder: "My layout");
         if (string.IsNullOrWhiteSpace(layoutName)) return;
@@ -443,8 +454,9 @@ public partial class ControllerEditor : ContentView
             return;
         }
 
-        var newController = await ControllerManager.CreateControllerAsync(layoutName);
+        var newController = await ControllerManager.CreateControllerAsync(layoutName, inputDeviceType);
         ControllerManager.SetControllerAsActive(newController);
+        SetInputDeviceType(inputDeviceType);
         _selectedController = newController;
         RefreshControllerList();
         RefreshLayoutPicker();
@@ -452,19 +464,11 @@ public partial class ControllerEditor : ContentView
         LoadController(newController);
     }
     private void OnNewControllerFileClicked(object sender, EventArgs e) { }
-    private void OnBasicKeyboardModeClicked(object sender, EventArgs e) => SetInputDeviceType(VirtualDeviceType.InputSimulatorKeyboard);
-    private void OnXboxGamepadModeClicked(object sender, EventArgs e) => SetInputDeviceType(VirtualDeviceType.VigemXboxController);
     private void SetInputDeviceType(VirtualDeviceType type)
     {
         if (InputDeviceType == type) return;
         InputDeviceType = type;
-        RefreshModeButtons();
         InputDeviceTypeChanged?.Invoke(this, type);
-    }
-    private void RefreshModeButtons()
-    {
-        BasicKeyboardButton.BackgroundColor = InputDeviceType == VirtualDeviceType.InputSimulatorKeyboard ? ActiveModeColor : InactiveModeColor;
-        XboxGamepadButton.BackgroundColor = InputDeviceType == VirtualDeviceType.VigemXboxController ? ActiveModeColor : InactiveModeColor;
     }
  
     internal async Task DeleteWidgetAsync(string widgetId)

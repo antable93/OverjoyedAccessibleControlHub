@@ -21,20 +21,14 @@
 
                     <Border Grid.Row="1" BackgroundColor="#C5A63A" Padding="8,6" StrokeThickness="0" Margin="0,6,0,0"
                             HorizontalOptions="Fill" VerticalOptions="End">
-                        <Grid ColumnDefinitions="Auto, Auto, *, Auto, Auto, Auto" ColumnSpacing="8">
-                            <Button Grid.Column="0" x:Name="BasicKeyboardButton" Text="Basic Keyboard"
-                                    FontSize="{DynamicResource SubtextFontSize}" HeightRequest="42" Padding="18,0"
-                                    CornerRadius="4" TextColor="{DynamicResource FontColor}" Clicked="OnBasicKeyboardModeClicked"/>
-                            <Button Grid.Column="1" x:Name="XboxGamepadButton" Text="Xbox Gamepad"
-                                    FontSize="{DynamicResource SubtextFontSize}" HeightRequest="42" Padding="18,0"
-                                    CornerRadius="4" TextColor="{DynamicResource FontColor}" Clicked="OnXboxGamepadModeClicked"/>
-                            <Button Grid.Column="3" Text="New Layout" WidthRequest="130"
+                        <Grid ColumnDefinitions="*, Auto, Auto, Auto" ColumnSpacing="8">
+                            <Button Grid.Column="1" Text="New Layout" WidthRequest="130"
                                 Style="{StaticResource PanelButton}" Clicked="OnNewLayoutClicked"/>
-                            <Picker Grid.Column="4" x:Name="LayoutPicker" Title="Layout" WidthRequest="180"
+                            <Picker Grid.Column="2" x:Name="LayoutPicker" Title="Layout" WidthRequest="180"
                                 FontSize="{DynamicResource SubtextFontSize}" TextColor="{DynamicResource FontColor}"
                                 BackgroundColor="{DynamicResource FieldColor}"
                                 SelectedIndexChanged="OnLayoutPickerSelectedIndexChanged"/>
-                            <Button Grid.Column="5" Text="Start Overjoyed" WidthRequest="160"
+                            <Button Grid.Column="3" Text="Start Overjoyed" WidthRequest="160"
                                     Style="{StaticResource PanelButton}" Clicked="OnStartOverjoyedClicked"/>
                         </Grid>
                     </Border>

@@ -9,9 +9,6 @@ public class Joystick : Widget
 
     public Joystick(Controller controller, JoystickWidgetDescriptor descriptor) : base(controller, descriptor)
     {
-        VirtualInputManager.Instance.AddVirtualInputDevice(VirtualDeviceType.InputSimulatorKeyboard);
-        VirtualInputManager.Instance.AddVirtualInputDevice(VirtualDeviceType.VigemXboxController);
-
         _ = LoadIconsAsync();
     }
 

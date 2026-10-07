@@ -20,6 +20,9 @@
             <overjoyed:IconButton x:Name="DevicesButton" BackgroundColor="Transparent" Padding="5, 5, 0, 5" 
                                   WidthRequest="225" IconSource="mouse" Text="Devices"
                                   FontSize="{DynamicResource BodyFontSize}" IconSize="{DynamicResource IconSize}" Rounded="True" Clicked="OnDevicesButtonClicked"/>
+            <overjoyed:IconButton x:Name="EyeTrackingButton" BackgroundColor="Transparent" Padding="5, 5, 0, 5"
+                                  WidthRequest="225" IconSource="eye" Text="Eye Tracking"
+                                  FontSize="{DynamicResource BodyFontSize}" IconSize="{DynamicResource IconSize}" Rounded="True" Clicked="OnEyeTrackingButtonClicked"/>
         </VerticalStackLayout>
 
         <ContentView x:Name="SubMenuContainer" Grid.Column="2" VerticalOptions="Start"/>

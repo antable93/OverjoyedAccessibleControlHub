@@ -15,6 +15,9 @@ public abstract class VirtualInputDevice
         AxisInputs = CreateAxisInputs();
     }
 
+    public virtual void Activate() { }
+    public virtual void Deactivate() { }
+
     protected virtual Dictionary<string, ActionInput> CreateActionInputs() => new();
     protected virtual Dictionary<string, AxisInput> CreateAxisInputs() => new();
 }

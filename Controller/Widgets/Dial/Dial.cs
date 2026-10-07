@@ -14,9 +14,6 @@ public class Dial : Widget
     {
         _quadrants = CreateQuadrants(descriptor.QuadrantCount);
 
-        VirtualInputManager.Instance.AddVirtualInputDevice(VirtualDeviceType.InputSimulatorKeyboard);
-        VirtualInputManager.Instance.AddVirtualInputDevice(VirtualDeviceType.VigemXboxController);
-
         _ = LoadIconsAsync();
     }
 

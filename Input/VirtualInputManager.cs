@@ -11,8 +11,13 @@ public class VirtualInputManager
     public static VirtualInputManager Instance { get; } = new();
 
     private readonly List<VirtualInputDevice> _devices = [];
+    private VirtualDeviceType? _activeDeviceType;
 
-    private VirtualInputManager() {}
+    private VirtualInputManager()
+    {
+        AddVirtualInputDevice(VirtualDeviceType.InputSimulatorKeyboard);
+        AddVirtualInputDevice(VirtualDeviceType.VigemXboxController);
+    }
 
     public void AddVirtualInputDevice(VirtualDeviceType type)
     {
@@ -31,27 +36,35 @@ public class VirtualInputManager
         _devices.Add(device);
     }
 
-    public ActionInput? FindActionInput(string label)
+    public void SetActiveVirtualInputDevice(VirtualDeviceType type)
     {
         foreach (var device in _devices)
         {
-            if (device.ActionInputs.TryGetValue(label, out var action))
-            {
-                return action;
-            }
+            if (device.VirtualDeviceType == type)
+                device.Activate();
+            else
+                device.Deactivate();
         }
-        return null;
+
+        _activeDeviceType = type;
+    }
+
+    public void DeactivateAllVirtualInputDevices()
+    {
+        foreach (var device in _devices)
+            device.Deactivate();
+        _activeDeviceType = null;
+    }
+
+    public ActionInput? FindActionInput(string label)
+    {
+        return _devices.FirstOrDefault(device => device.VirtualDeviceType == _activeDeviceType)?
+            .ActionInputs.GetValueOrDefault(label);
     }
     public AxisInput? FindAxisInput(string label)
     {
-        foreach (var device in _devices)
-        {
-            if (device.AxisInputs.TryGetValue(label, out var axis))
-            {
-                return axis;
-            }
-        }
-        return null;
+        return _devices.FirstOrDefault(device => device.VirtualDeviceType == _activeDeviceType)?
+            .AxisInputs.GetValueOrDefault(label);
     }
     public IEnumerable<string> GetAllActionInputLabels() => _devices.SelectMany(d => d.ActionInputs.Keys);
     public IEnumerable<string> GetAllAxisInputLabels() => _devices.SelectMany(d => d.AxisInputs.Keys);
@@ -62,4 +75,7 @@ public class VirtualInputManager
         _devices.Where(d => d.VirtualDeviceType == deviceType).SelectMany(d => d.ActionInputs.Keys);
     public IEnumerable<string> GetAxisInputLabels(VirtualDeviceType deviceType) =>
         _devices.Where(d => d.VirtualDeviceType == deviceType).SelectMany(d => d.AxisInputs.Keys);
+    public IEnumerable<string> Get2DAxisInputLabels(VirtualDeviceType deviceType) =>
+        _devices.Where(d => d.VirtualDeviceType == deviceType)
+            .SelectMany(d => d.AxisInputs.Where(input => input.Value.Move2D != null).Select(input => input.Key));
 }
